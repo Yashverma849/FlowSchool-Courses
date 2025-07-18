@@ -11,6 +11,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import SiteHeader from "@/components/site-header"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Menu } from "lucide-react"
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState({
@@ -110,9 +112,24 @@ export default function SettingsPage() {
     // Implement account deletion logic here
   }
 
+  const sidebarToggle = (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="outline" className="bg-gray-900/80 backdrop-blur-sm border-gray-700 text-gray-100 hover:bg-gray-800 w-10 h-10 p-0 flex items-center justify-center">
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Open Settings Sidebar</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-64 p-0 bg-gray-900 border-gray-800">
+        {/* Place sidebar content here if/when needed */}
+        <div className="p-6">Sidebar content (settings navigation, etc.)</div>
+      </SheetContent>
+    </Sheet>
+  )
+
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
-      <SiteHeader />
+      <SiteHeader sidebarToggle={sidebarToggle} />
 
       <div className="container mx-auto px-4 py-8 flex flex-1 gap-8">
         {/* Settings Header */}

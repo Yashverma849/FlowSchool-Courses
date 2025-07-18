@@ -9,6 +9,8 @@ import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import SiteHeader from "@/components/site-header"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Menu } from "lucide-react"
 
 // Mock Course Data - Ideally fetched from an API
 const mockCourses = [
@@ -211,6 +213,45 @@ const mockCourses = [
   },
 ];
 
+// Extract sidebar content to a component
+function CourseSidebar({ course, currentLesson, setCurrentLesson }) {
+  return (
+    <div className="w-80 bg-gray-900 border-r border-gray-800 flex-shrink-0 p-6 overflow-y-auto h-full">
+      <Link href="/" className="flex items-center text-gray-400 hover:text-purple-400 mb-6">
+        <ChevronLeft className="h-4 w-4 mr-2" />
+        Back to Courses
+      </Link>
+      <h2 className="text-xl font-semibold mb-4">Course Content</h2>
+      <div className="mb-6">
+        <div className="flex items-center justify-between text-gray-400 text-sm mb-2">
+          <span>Overall Progress</span>
+          <span>{course.overallProgress}%</span>
+        </div>
+        <Progress value={course.overallProgress} className="w-full bg-gray-700 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-value]:rounded-lg [&::-webkit-progress-value]:bg-gradient-to-r [&::-webkit-progress-value]:from-purple-500 [&::-webkit-progress-value]:to-pink-500" />
+        <p className="text-gray-500 text-xs mt-1">0 of {course.lessons} lessons completed</p>
+      </div>
+      <div className="space-y-4">
+        {course.content.map((lesson, index) => (
+          <div
+            key={lesson.id}
+            className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer ${currentLesson.id === lesson.id ? "bg-purple-600/20 text-purple-300" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
+            onClick={() => setCurrentLesson(lesson)}
+          >
+            <span className="text-sm font-bold">{lesson.id}</span>
+            <div className="flex-1">
+              <p className="text-sm font-medium">{lesson.title}</p>
+              <p className="text-xs text-gray-500">{lesson.duration}</p>
+            </div>
+            {currentLesson.id === lesson.id && (
+              <span className="text-xs font-semibold text-purple-400 bg-purple-200/20 px-2 py-1 rounded-full">Current</span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function CourseContentPage({ params }) {
   const { courseId } = params;
   console.log('courseId from params:', courseId);
@@ -224,48 +265,28 @@ export default function CourseContentPage({ params }) {
 
   const [currentLesson, setCurrentLesson] = useState(course.content[0]);
 
+  const sidebarToggle = (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="outline" className="bg-gray-900/80 backdrop-blur-sm border-gray-700 text-gray-100 hover:bg-gray-800 w-10 h-10 p-0 flex items-center justify-center">
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Open Course Content</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-80 p-0 bg-gray-900 border-gray-800">
+        <CourseSidebar course={course} currentLesson={currentLesson} setCurrentLesson={setCurrentLesson} />
+      </SheetContent>
+    </Sheet>
+  )
+
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
-      <SiteHeader />
-
+      <SiteHeader sidebarToggle={sidebarToggle} />
       <div className="flex flex-1">
-        {/* Left Sidebar - Course Content */}
-        <div className="w-80 bg-gray-900 border-r border-gray-800 flex-shrink-0 p-6 overflow-y-auto">
-          <Link href="/" className="flex items-center text-gray-400 hover:text-purple-400 mb-6">
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Back to Courses
-          </Link>
-          <h2 className="text-xl font-semibold mb-4">Course Content</h2>
-
-          <div className="mb-6">
-            <div className="flex items-center justify-between text-gray-400 text-sm mb-2">
-              <span>Overall Progress</span>
-              <span>{course.overallProgress}%</span>
-            </div>
-            <Progress value={course.overallProgress} className="w-full bg-gray-700 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-value]:rounded-lg [&::-webkit-progress-value]:bg-gradient-to-r [&::-webkit-progress-value]:from-purple-500 [&::-webkit-progress-value]:to-pink-500" />
-            <p className="text-gray-500 text-xs mt-1">0 of {course.lessons} lessons completed</p>
-          </div>
-
-          <div className="space-y-4">
-            {course.content.map((lesson, index) => (
-              <div
-                key={lesson.id}
-                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer ${currentLesson.id === lesson.id ? "bg-purple-600/20 text-purple-300" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
-                onClick={() => setCurrentLesson(lesson)}
-              >
-                <span className="text-sm font-bold">{lesson.id}</span>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{lesson.title}</p>
-                  <p className="text-xs text-gray-500">{lesson.duration}</p>
-                </div>
-                {currentLesson.id === lesson.id && (
-                  <span className="text-xs font-semibold text-purple-400 bg-purple-200/20 px-2 py-1 rounded-full">Current</span>
-                )}
-              </div>
-            ))}
-          </div>
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block h-full">
+          <CourseSidebar course={course} currentLesson={currentLesson} setCurrentLesson={setCurrentLesson} />
         </div>
-
         {/* Main Content Area */}
         <div className="flex-1 p-8 overflow-y-auto">
           {/* Course Header */} 

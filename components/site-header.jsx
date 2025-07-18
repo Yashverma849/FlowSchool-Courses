@@ -8,18 +8,24 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 
-export default function SiteHeader() {
+export default function SiteHeader({ sidebarToggle }) {
   const [searchTerm, setSearchTerm] = useState("") // State for global search
 
   return (
     <div className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Sparkle className="h-8 w-8 text-purple-400" />
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              FlowSchool
-            </h1>
+          <div className="flex flex-col items-start gap-2">
+            <div className="flex items-center gap-3">
+              <Sparkle className="h-8 w-8 text-purple-400" />
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                FlowSchool
+              </h1>
+            </div>
+            {/* Sidebar Toggle (mobile only) */}
+            {sidebarToggle && (
+              <div className="block lg:hidden mt-2">{sidebarToggle}</div>
+            )}
           </div>
 
           {/* Search */}

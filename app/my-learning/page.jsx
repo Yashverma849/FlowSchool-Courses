@@ -10,6 +10,8 @@ import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import SiteHeader from "@/components/site-header"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Menu } from "lucide-react"
 
 // Mock data for enrolled courses (similar to coursesData but with progress)
 const enrolledCoursesData = [
@@ -112,9 +114,24 @@ export default function MyLearningPage() {
     ? enrolledCoursesData.reduce((sum, course) => sum + course.progress, 0) / totalCourses
     : 0;
 
+  const sidebarToggle = (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="outline" className="bg-gray-900/80 backdrop-blur-sm border-gray-700 text-gray-100 hover:bg-gray-800 w-10 h-10 p-0 flex items-center justify-center">
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Open My Learning Sidebar</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-64 p-0 bg-gray-900 border-gray-800">
+        {/* Place sidebar content here if/when needed */}
+        <div className="p-6">Sidebar content (filters, navigation, etc.)</div>
+      </SheetContent>
+    </Sheet>
+  )
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
-      <SiteHeader />
+      <SiteHeader sidebarToggle={sidebarToggle} />
 
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">

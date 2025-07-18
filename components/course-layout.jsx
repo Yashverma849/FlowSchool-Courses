@@ -15,6 +15,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import Link from "next/link"
 import SiteHeader from "@/components/site-header"
 import { Separator } from "@/components/ui/separator"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Menu } from "lucide-react"
 
 const coursesData = [
   {
@@ -109,6 +111,130 @@ const coursesData = [
   },
 ]
 
+function DashboardSidebar({
+  filterType, setFilterType,
+  selectedFlowArts, setSelectedFlowArts,
+  selectedSkillLevel, setSelectedSkillLevel,
+  ratingFilter, setRatingFilter,
+  coursesData, flowArtsOptions, skillLevelOptions
+}) {
+  return (
+    <div className="w-64 bg-gray-900 border-r border-gray-800 p-6 flex-shrink-0 h-full overflow-y-auto">
+      <div className="flex items-center gap-2 text-lg font-semibold text-purple-400 mb-6">
+        <ListFilter className="h-5 w-5" />
+        Filters
+      </div>
+      <div className="mb-8">
+        <h3 className="text-gray-300 text-sm uppercase tracking-wider mb-3">Course Type</h3>
+        <div className="space-y-2">
+          <Button
+            variant="ghost"
+            className={`w-full justify-between text-left ${filterType === "all" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
+            onClick={() => setFilterType("all")}
+          >
+            All Courses
+            <Badge variant="secondary" className={`${filterType === "all" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300`}>
+              {coursesData.length}
+            </Badge>
+          </Button>
+          <Button
+            variant="ghost"
+            className={`w-full justify-between text-left ${filterType === "free" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
+            onClick={() => setFilterType("free")}
+          >
+            Free Courses
+            <Badge variant="secondary" className={`${filterType === "free" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300`}>
+              {coursesData.filter((course) => course.price === "Free").length}
+            </Badge>
+          </Button>
+          <Button
+            variant="ghost"
+            className={`w-full justify-between text-left ${filterType === "paid" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
+            onClick={() => setFilterType("paid")}
+          >
+            Premium Courses
+            <Badge variant="secondary" className={`${filterType === "paid" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300`}>
+              {coursesData.filter((course) => course.price !== "Free").length}
+            </Badge>
+          </Button>
+        </div>
+      </div>
+      <Separator className="bg-gray-800 my-6" />
+      <div className="mb-8">
+        <h3 className="text-gray-300 text-sm uppercase tracking-wider mb-3">Flow Arts</h3>
+        <div className="space-y-2">
+          {flowArtsOptions.map((option) => (
+            <Button
+              key={option.value}
+              variant="ghost"
+              className={`w-full justify-start text-left gap-2 ${selectedFlowArts === option.value ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
+              onClick={() => setSelectedFlowArts(option.value)}
+            >
+              {option.icon}
+              {option.label}
+              <Badge variant="secondary" className={`${selectedFlowArts === option.value ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300 ml-auto`}>
+                {coursesData.filter((course) => course.tags.includes(option.value)).length}
+              </Badge>
+            </Button>
+          ))}
+          <Button
+            variant="ghost"
+            className={`w-full justify-start text-left gap-2 ${selectedFlowArts === "all" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
+            onClick={() => setSelectedFlowArts("all")}
+          >
+            All Flow Arts
+            <Badge variant="secondary" className={`${selectedFlowArts === "all" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300 ml-auto`}>
+              {coursesData.filter((course) => course.tags.some(tag => flowArtsOptions.map(opt => opt.value).includes(tag))).length}
+            </Badge>
+          </Button>
+        </div>
+      </div>
+      <div className="mb-8">
+        <h3 className="text-gray-300 text-sm uppercase tracking-wider mb-3">Skill Level</h3>
+        <div className="space-y-2">
+          {skillLevelOptions.map((option) => (
+            <Button
+              key={option.value}
+              variant="ghost"
+              className={`w-full justify-start text-left ${selectedSkillLevel === option.value ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
+              onClick={() => setSelectedSkillLevel(option.value)}
+            >
+              {option.label}
+              <Badge variant="secondary" className={`${selectedSkillLevel === option.value ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300 ml-auto`}>
+                {coursesData.filter((course) => course.level === option.value).length}
+              </Badge>
+            </Button>
+          ))}
+          <Button
+            variant="ghost"
+            className={`w-full justify-start text-left ${selectedSkillLevel === "all" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
+            onClick={() => setSelectedSkillLevel("all")}
+          >
+            All Levels
+            <Badge variant="secondary" className={`${selectedSkillLevel === "all" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300 ml-auto`}>
+              {coursesData.length}
+            </Badge>
+          </Button>
+        </div>
+      </div>
+      <div className="mb-8">
+        <h3 className="text-gray-300 text-sm uppercase tracking-wider mb-3">Rating</h3>
+        <div className="flex items-center gap-2">
+          <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+          <span className="text-gray-300">{ratingFilter[0].toFixed(1)} & up</span>
+        </div>
+        <Slider
+          value={ratingFilter}
+          onValueChange={setRatingFilter}
+          max={5}
+          step={0.1}
+          className="mt-2"
+        />
+      </div>
+    </div>
+  )
+}
+
 export default function CourseLayout() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState("all")
@@ -148,162 +274,83 @@ export default function CourseLayout() {
     return matchesSearch && matchesFilter && matchesFlowArt && matchesSkillLevel && matchesRating
   })
 
+  const sidebarToggle = (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="outline" className="bg-gray-900/80 backdrop-blur-sm border-gray-700 text-gray-100 hover:bg-gray-800 w-10 h-10 p-0 flex items-center justify-center">
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Open Filters</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-64 p-0 bg-gray-900 border-gray-800">
+        <DashboardSidebar
+          filterType={filterType}
+          setFilterType={setFilterType}
+          selectedFlowArts={selectedFlowArts}
+          setSelectedFlowArts={setSelectedFlowArts}
+          selectedSkillLevel={selectedSkillLevel}
+          setSelectedSkillLevel={setSelectedSkillLevel}
+          ratingFilter={ratingFilter}
+          setRatingFilter={setRatingFilter}
+          coursesData={coursesData}
+          flowArtsOptions={flowArtsOptions}
+          skillLevelOptions={skillLevelOptions}
+        />
+      </SheetContent>
+    </Sheet>
+  )
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
-      <SiteHeader />
-
+      <SiteHeader sidebarToggle={sidebarToggle} />
       <div className="flex">
-        {/* Sidebar */}
-        <motion.div
-          initial={{ x: -200, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="w-64 bg-gray-900 border-r border-gray-800 p-6 flex-shrink-0 sticky top-[77px] h-[calc(100vh-77px)] overflow-y-auto"
-        >
-          <div className="flex items-center gap-2 text-lg font-semibold text-purple-400 mb-6">
-            <ListFilter className="h-5 w-5" />
-            Filters
-          </div>
-
-          <div className="mb-8">
-            <h3 className="text-gray-300 text-sm uppercase tracking-wider mb-3">Course Type</h3>
-            <div className="space-y-2">
-              <Button
-                variant="ghost"
-                className={`w-full justify-between text-left ${filterType === "all" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
-                onClick={() => setFilterType("all")}
-              >
-                All Courses
-                <Badge variant="secondary" className={`${filterType === "all" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300`}>
-                  {coursesData.length}
-                </Badge>
-              </Button>
-              <Button
-                variant="ghost"
-                className={`w-full justify-between text-left ${filterType === "free" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
-                onClick={() => setFilterType("free")}
-              >
-                Free Courses
-                <Badge variant="secondary" className={`${filterType === "free" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300`}>
-                  {coursesData.filter((course) => course.price === "Free").length}
-                </Badge>
-              </Button>
-              <Button
-                variant="ghost"
-                className={`w-full justify-between text-left ${filterType === "paid" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
-                onClick={() => setFilterType("paid")}
-              >
-                Premium Courses
-                <Badge variant="secondary" className={`${filterType === "paid" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300`}>
-                  {coursesData.filter((course) => course.price !== "Free").length}
-                </Badge>
-              </Button>
-            </div>
-          </div>
-
-          <Separator className="bg-gray-800 my-6" />
-
-          <div className="mb-8">
-            <h3 className="text-gray-300 text-sm uppercase tracking-wider mb-3">Flow Arts</h3>
-            <div className="space-y-2">
-              {flowArtsOptions.map((option) => (
-                <Button
-                  key={option.value}
-                  variant="ghost"
-                  className={`w-full justify-start text-left gap-2 ${selectedFlowArts === option.value ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
-                  onClick={() => setSelectedFlowArts(option.value)}
-                >
-                  {option.icon}
-                  {option.label}
-                  <Badge variant="secondary" className={`${selectedFlowArts === option.value ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300 ml-auto`}>
-                    {coursesData.filter((course) => course.tags.includes(option.value)).length}
-                  </Badge>
-                </Button>
-              ))}
-              <Button
-                variant="ghost"
-                className={`w-full justify-start text-left gap-2 ${selectedFlowArts === "all" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
-                onClick={() => setSelectedFlowArts("all")}
-              >
-                All Flow Arts
-                <Badge variant="secondary" className={`${selectedFlowArts === "all" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300 ml-auto`}>
-                  {coursesData.filter((course) => course.tags.some(tag => flowArtsOptions.map(opt => opt.value).includes(tag))).length}
-                </Badge>
-              </Button>
-            </div>
-          </div>
-
-          <div className="mb-8">
-            <h3 className="text-gray-300 text-sm uppercase tracking-wider mb-3">Skill Level</h3>
-            <div className="space-y-2">
-              {skillLevelOptions.map((option) => (
-                <Button
-                  key={option.value}
-                  variant="ghost"
-                  className={`w-full justify-start text-left ${selectedSkillLevel === option.value ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
-                  onClick={() => setSelectedSkillLevel(option.value)}
-                >
-                  {option.label}
-                  <Badge variant="secondary" className={`${selectedSkillLevel === option.value ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300 ml-auto`}>
-                    {coursesData.filter((course) => course.level === option.value).length}
-                  </Badge>
-                </Button>
-              ))}
-              <Button
-                variant="ghost"
-                className={`w-full justify-start text-left ${selectedSkillLevel === "all" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
-                onClick={() => setSelectedSkillLevel("all")}
-              >
-                All Levels
-                <Badge variant="secondary" className={`${selectedSkillLevel === "all" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300 ml-auto`}>
-                  {coursesData.length}
-                </Badge>
-              </Button>
-            </div>
-          </div>
-
-          <div className="mb-8">
-            <h3 className="text-gray-300 text-sm uppercase tracking-wider mb-3">Rating</h3>
-            <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-              <span className="text-gray-300">{ratingFilter[0].toFixed(1)} & up</span>
-            </div>
-            <Slider
-              value={ratingFilter}
-              onValueChange={setRatingFilter}
-              max={5}
-              step={0.1}
-              className="mt-2"
-            />
-          </div>
-        </motion.div>
-
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block h-full">
+          <DashboardSidebar
+            filterType={filterType}
+            setFilterType={setFilterType}
+            selectedFlowArts={selectedFlowArts}
+            setSelectedFlowArts={setSelectedFlowArts}
+            selectedSkillLevel={selectedSkillLevel}
+            setSelectedSkillLevel={setSelectedSkillLevel}
+            ratingFilter={ratingFilter}
+            setRatingFilter={setRatingFilter}
+            coursesData={coursesData}
+            flowArtsOptions={flowArtsOptions}
+            skillLevelOptions={skillLevelOptions}
+          />
+        </div>
         {/* Main Content */}
         <div className="flex-1 p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold text-gray-200">Flow Arts Courses</h2>
-            <div className="flex items-center gap-2 text-gray-400">
-              <span className="text-lg font-semibold text-gray-200">
-                {filteredCourses.length} courses found
-              </span>
-              <span>Filter:</span>
-              <Button
-                variant="secondary"
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full px-4"
-                onClick={() => setFilterType("all")}
-              >
-                {filterType === "all"
-                  ? "All Courses"
-                  : filterType === "free"
-                    ? "Free Courses"
-                    : "Premium Courses"}
-              </Button>
+          <div className="mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+              <div>
+                <h2 className="text-4xl font-extrabold text-white leading-tight mb-2">Flow Arts Courses</h2>
+                <p className="text-gray-400 max-w-2xl">
+                  Discover the art of movement, rhythm, and creative expression through our curated collection of courses.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2 sm:mt-0">
+                <span className="text-lg font-semibold text-gray-200 whitespace-nowrap">
+                  {filteredCourses.length} <span className="font-normal text-gray-400">courses found</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline">Filter:</span>
+                  <Button
+                    variant="secondary"
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full px-4"
+                    onClick={() => setFilterType("all")}
+                  >
+                    {filterType === "all"
+                      ? "All Courses"
+                      : filterType === "free"
+                        ? "Free Courses"
+                        : "Premium Courses"}
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-          <p className="text-gray-400 mb-8">
-            Discover the art of movement, rhythm, and creative expression through our curated collection of
-            courses
-          </p>
 
           <CoursesDashboard courses={filteredCourses} />
         </div>
