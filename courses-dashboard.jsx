@@ -81,9 +81,9 @@ export default function CoursesDashboard({ courses }) {
             <CardFooter className="p-6 pt-0">
               <Link href={`/courses/${course.id}`} className="w-full">
                 <Button
-                  className={`w-full ${course.enrolled ? "bg-green-600 hover:bg-green-700" : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"}`}
+                  className={`w-full ${course.enrolled || course.isPlaylist ? "bg-green-600 hover:bg-green-700" : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"}`}
                 >
-                  {course.enrolled ? (
+                  {course.enrolled || course.isPlaylist ? (
                     <>
                       <Play className="h-4 w-4 mr-2" />
                       Continue Learning

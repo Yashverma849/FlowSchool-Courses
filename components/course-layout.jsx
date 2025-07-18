@@ -109,6 +109,22 @@ const coursesData = [
     tags: ["Juggling", "Beginner", "Free", "Flow Arts"],
     enrolled: false,
   },
+  {
+    id: 7,
+    title: "FLOWCHAKRA TUTORIALS",
+    description: "A curated playlist of Flow Chakra tutorials from YouTube.",
+    thumbnail: "/images/flowchakra.jpg",
+    instructor: "Flow Chakra (YouTube)",
+    duration: "13m 16s",
+    lessons: 6,
+    students: 0,
+    rating: 5.0,
+    price: "Free",
+    level: "All Levels",
+    tags: ["YouTube", "Playlist", "Flow Arts", "Beginner", "Intermediate", "Advanced"],
+    isPlaylist: true,
+    playlistId: "PLguV1vYQuOqh8LAm3CvlTpggarTWkkM3t"
+  },
 ]
 
 function DashboardSidebar({
@@ -257,7 +273,7 @@ export default function CourseLayout() {
     { label: "All Levels", value: "All Levels" },
   ]
 
-  const filteredCourses = coursesData.filter((course) => {
+  let filteredCourses = coursesData.filter((course) => {
     const matchesSearch =
       course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       course.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -273,6 +289,8 @@ export default function CourseLayout() {
 
     return matchesSearch && matchesFilter && matchesFlowArt && matchesSkillLevel && matchesRating
   })
+  // Always show FLOWCHAKRA TUTORIALS (id: 7) at the top
+  filteredCourses = filteredCourses.sort((a, b) => (a.id === 7 ? -1 : b.id === 7 ? 1 : 0))
 
   const sidebarToggle = (
     <Sheet>

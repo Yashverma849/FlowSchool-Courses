@@ -211,44 +211,72 @@ const mockCourses = [
       { id: "14", title: "Mastering Juggling", duration: "22:00" },
     ],
   },
+  {
+    id: 7,
+    title: "FLOWCHAKRA TUTORIALS",
+    instructor: "Flow Chakra (YouTube)",
+    rating: 5.0,
+    students: 0,
+    lessons: 6,
+    overallProgress: 0,
+    overview: {
+      description: "A curated playlist of Flow Chakra tutorials from YouTube.",
+      learnings: [
+        "Basic wrist movement techniques",
+        "Hand movement for juggling",
+        "Intermediate and advanced flow moves",
+        "Exploring vertical planes and more"
+      ],
+    },
+    content: [
+      { id: "01", title: "BASIC WRIST MOVEMENT 1", duration: "1:59", views: "14K", published: "2 years ago", url: "https://www.youtube.com/embed/TkZD1_mYbZo?rel=0" },
+      { id: "02", title: "HAND MOVEMENT TO JUGGLE THE FLOWCHAKRA", duration: "1:44", views: "8.3K", published: "2 years ago", url: "https://www.youtube.com/embed/JXQnONhvy8U?rel=0" },
+      { id: "03", title: "Intermediate moves - Flick the wrist", duration: "1:52", views: "10K", published: "2 years ago", url: "https://www.youtube.com/embed/YGvtt9B_3Wg?rel=0" },
+      { id: "04", title: "Intermediate moves - Behind the back", duration: "1:54", views: "5.4K", published: "2 years ago", url: "https://www.youtube.com/embed/YdgE4k8IdiU?rel=0" },
+      { id: "05", title: "Advanced - Double hand steering wheel", duration: "3:01", views: "10K", published: "1 year ago", url: "https://www.youtube.com/embed/TKBQwruJ_LA?rel=0" },
+      { id: "06", title: "Exploring the vertical plane", duration: "2:56", views: "134", published: "8 days ago", url: "https://www.youtube.com/embed/1RGUYtlHPJg?rel=0" },
+    ],
+    isPlaylist: true,
+    playlistId: "PLguV1vYQuOqh8LAm3CvlTpggarTWkkM3t"
+  },
 ];
 
 // Extract sidebar content to a component
 function CourseSidebar({ course, currentLesson, setCurrentLesson }) {
   return (
     <div className="w-80 bg-gray-900 border-r border-gray-800 flex-shrink-0 p-6 overflow-y-auto h-full">
-      <Link href="/" className="flex items-center text-gray-400 hover:text-purple-400 mb-6">
-        <ChevronLeft className="h-4 w-4 mr-2" />
-        Back to Courses
-      </Link>
-      <h2 className="text-xl font-semibold mb-4">Course Content</h2>
-      <div className="mb-6">
-        <div className="flex items-center justify-between text-gray-400 text-sm mb-2">
-          <span>Overall Progress</span>
-          <span>{course.overallProgress}%</span>
-        </div>
-        <Progress value={course.overallProgress} className="w-full bg-gray-700 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-value]:rounded-lg [&::-webkit-progress-value]:bg-gradient-to-r [&::-webkit-progress-value]:from-purple-500 [&::-webkit-progress-value]:to-pink-500" />
-        <p className="text-gray-500 text-xs mt-1">0 of {course.lessons} lessons completed</p>
-      </div>
-      <div className="space-y-4">
-        {course.content.map((lesson, index) => (
-          <div
-            key={lesson.id}
-            className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer ${currentLesson.id === lesson.id ? "bg-purple-600/20 text-purple-300" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
-            onClick={() => setCurrentLesson(lesson)}
-          >
-            <span className="text-sm font-bold">{lesson.id}</span>
-            <div className="flex-1">
-              <p className="text-sm font-medium">{lesson.title}</p>
-              <p className="text-xs text-gray-500">{lesson.duration}</p>
+          <Link href="/" className="flex items-center text-gray-400 hover:text-purple-400 mb-6">
+            <ChevronLeft className="h-4 w-4 mr-2" />
+            Back to Courses
+          </Link>
+          <h2 className="text-xl font-semibold mb-4">Course Content</h2>
+          <div className="mb-6">
+            <div className="flex items-center justify-between text-gray-400 text-sm mb-2">
+              <span>Overall Progress</span>
+              <span>{course.overallProgress}%</span>
             </div>
-            {currentLesson.id === lesson.id && (
-              <span className="text-xs font-semibold text-purple-400 bg-purple-200/20 px-2 py-1 rounded-full">Current</span>
-            )}
+            <Progress value={course.overallProgress} className="w-full bg-gray-700 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-value]:rounded-lg [&::-webkit-progress-value]:bg-gradient-to-r [&::-webkit-progress-value]:from-purple-500 [&::-webkit-progress-value]:to-pink-500" />
+            <p className="text-gray-500 text-xs mt-1">0 of {course.lessons} lessons completed</p>
           </div>
-        ))}
-      </div>
-    </div>
+          <div className="space-y-4">
+            {course.content.map((lesson, index) => (
+              <div
+                key={lesson.id}
+                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer ${currentLesson.id === lesson.id ? "bg-purple-600/20 text-purple-300" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
+                onClick={() => setCurrentLesson(lesson)}
+              >
+                <span className="text-sm font-bold">{lesson.id}</span>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{lesson.title}</p>
+                  <p className="text-xs text-gray-500">{lesson.duration}</p>
+                </div>
+                {currentLesson.id === lesson.id && (
+                  <span className="text-xs font-semibold text-purple-400 bg-purple-200/20 px-2 py-1 rounded-full">Current</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
   )
 }
 
@@ -261,6 +289,128 @@ export default function CourseContentPage({ params }) {
 
   if (!course) {
     return <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">Course not found</div>;
+  }
+
+  if (course.isPlaylist) {
+    const [currentLesson, setCurrentLesson] = useState(course.content[0]);
+    const sidebarToggle = (
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="outline" className="bg-gray-900/80 backdrop-blur-sm border-gray-700 text-gray-100 hover:bg-gray-800 w-10 h-10 p-0 flex items-center justify-center">
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Open Course Content</span>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-80 p-0 bg-gray-900 border-gray-800">
+          <div className="w-80 bg-gray-900 border-r border-gray-800 flex-shrink-0 p-6 overflow-y-auto h-full">
+            <Link href="/" className="flex items-center text-gray-400 hover:text-purple-400 mb-6">
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Back to Courses
+            </Link>
+            <h2 className="text-xl font-semibold mb-4">Course Content</h2>
+            <div className="space-y-4">
+              {course.content.map((video, idx) => (
+                <div
+                  key={video.id}
+                  className={`flex flex-col gap-1 p-3 rounded-lg cursor-pointer transition-colors ${currentLesson.id === video.id ? "bg-purple-600/20 text-purple-300" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
+                  onClick={() => setCurrentLesson(video)}
+                >
+                  <span className="font-medium">{idx + 1}. {video.title}</span>
+                  <span className="text-xs text-gray-400">{video.duration} • {video.views} views • {video.published}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+    return (
+      <div className="min-h-screen bg-gray-950 text-white flex flex-col">
+        <SiteHeader sidebarToggle={sidebarToggle} />
+        <div className="flex flex-1">
+          {/* Desktop Sidebar */}
+          <div className="hidden lg:block h-full">
+            <div className="w-80 bg-gray-900 border-r border-gray-800 flex-shrink-0 p-6 overflow-y-auto h-full">
+              <Link href="/" className="flex items-center text-gray-400 hover:text-purple-400 mb-6">
+                <ChevronLeft className="h-4 w-4 mr-2" />
+                Back to Courses
+              </Link>
+              <h2 className="text-xl font-semibold mb-4">Course Content</h2>
+              <div className="space-y-4">
+                {course.content.map((video, idx) => (
+                  <div
+                    key={video.id}
+                    className={`flex flex-col gap-1 p-3 rounded-lg cursor-pointer transition-colors ${currentLesson.id === video.id ? "bg-purple-600/20 text-purple-300" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
+                    onClick={() => setCurrentLesson(video)}
+                  >
+                    <span className="font-medium">{idx + 1}. {video.title}</span>
+                    <span className="text-xs text-gray-400">{video.duration} • {video.views} views • {video.published}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* Main Content Area */}
+          <div className="flex-1 p-8 overflow-y-auto">
+            {/* Course Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-200">{course.title}</h1>
+                <p className="text-gray-400 mt-1">
+                  by {course.instructor} • <Star className="h-4 w-4 inline-block fill-yellow-400 text-yellow-400" /> {course.rating} • {course.students} students
+                </p>
+              </div>
+              <span className="text-lg font-semibold text-purple-400">
+                {course.overallProgress}% Complete <span className="text-gray-500 text-sm">Keep going!</span>
+              </span>
+            </div>
+            {/* Video Player */}
+            <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden mb-8">
+              <iframe
+                width="100%"
+                height="100%"
+                src={currentLesson.url}
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="absolute inset-0 w-full h-full rounded-lg"
+              ></iframe>
+            </div>
+            {/* Tabs */}
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 bg-gray-800 border-b border-gray-700 rounded-none">
+                <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600/30 data-[state=active]:text-purple-300 rounded-none">Overview</TabsTrigger>
+                <TabsTrigger value="notes" className="data-[state=active]:bg-purple-600/30 data-[state=active]:text-purple-300 rounded-none">Notes</TabsTrigger>
+                <TabsTrigger value="resources" className="data-[state=active]:bg-purple-600/30 data-[state=active]:text-purple-300 rounded-none">Resources</TabsTrigger>
+                <TabsTrigger value="community" className="data-[state=active]:bg-purple-600/30 data-[state=active]:text-purple-300 rounded-none">Community</TabsTrigger>
+              </TabsList>
+              <TabsContent value="overview" className="p-6 bg-gray-900 border border-gray-800 rounded-b-lg">
+                <p className="text-gray-400 mb-4">{course.overview.description}</p>
+                <h3 className="text-lg font-semibold text-gray-300 mb-3">What you'll learn in this course:</h3>
+                <ul className="list-disc list-inside text-gray-300 space-y-1">
+                  {course.overview.learnings.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </TabsContent>
+              <TabsContent value="notes" className="p-6 bg-gray-900 border border-gray-800 rounded-b-lg">
+                <h3 className="text-xl font-semibold text-gray-300">Notes</h3>
+                <p className="text-gray-400 mt-2">This section is for your personal notes on the course content.</p>
+              </TabsContent>
+              <TabsContent value="resources" className="p-6 bg-gray-900 border border-gray-800 rounded-b-lg">
+                <h3 className="text-xl font-semibold text-gray-300">Resources</h3>
+                <p className="text-gray-400 mt-2">Here you'll find additional resources for this course.</p>
+              </TabsContent>
+              <TabsContent value="community" className="p-6 bg-gray-900 border border-gray-800 rounded-b-lg">
+                <h3 className="text-xl font-semibold text-gray-300">Community</h3>
+                <p className="text-gray-400 mt-2">Engage with other learners and ask questions here!</p>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const [currentLesson, setCurrentLesson] = useState(course.content[0]);
