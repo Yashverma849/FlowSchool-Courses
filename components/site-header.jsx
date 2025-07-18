@@ -16,12 +16,12 @@ export default function SiteHeader({ sidebarToggle }) {
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex flex-col items-start gap-2">
-            <div className="flex items-center gap-3">
-              <Sparkle className="h-8 w-8 text-purple-400" />
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <Link href="/" className="flex items-center gap-3 group">
+              <Sparkle className="h-8 w-8 text-purple-400 group-hover:scale-110 transition-transform" />
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent group-hover:underline">
                 FlowSchool
               </h1>
-            </div>
+            </Link>
             {/* Sidebar Toggle (mobile only) */}
             {sidebarToggle && (
               <div className="block lg:hidden mt-2">{sidebarToggle}</div>
