@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Search, Menu, X, Bell } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -14,10 +14,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useCourses } from "../contexts/course-context"
+import { supabase } from "@/lib/supabaseClient"
 
 export function ModernHeader({ onMyLearningClick, onSettingsClick }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { filters, setSearchTerm } = useCourses()
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data, error } = await supabase.auth.getUser()
+      setUser(data?.user || null)
+      setLoading(false)
+    }
+    getUser()
+  }, [])
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value)
@@ -76,8 +88,16 @@ export function ModernHeader({ onMyLearningClick, onSettingsClick }) {
               <DropdownMenuContent className="w-56 bg-gray-900 border-gray-700 text-gray-100" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none text-gray-100">Alex Johnson</p>
-                    <p className="text-xs leading-none text-gray-400">alex@flowschool.com</p>
+                    {loading ? (
+                      <div>Loading...</div>
+                    ) : user ? (
+                      <>
+                        <p className="text-sm font-medium leading-none text-gray-100">{user.user_metadata?.full_name || user.email}</p>
+                        <p className="text-xs leading-none text-gray-400">{user.email}</p>
+                      </>
+                    ) : (
+                      <div>Not logged in</div>
+                    )}
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-gray-700" />

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import Link from "next/link"
 import { User, Bell, Settings as SettingsIcon, Shield, Lock, Save, ArrowLeft, Mail, Smartphone, Palette, Volume2, Eye, ScrollText, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -13,17 +13,21 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import SiteHeader from "@/components/site-header"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
+import { supabase } from "@/lib/supabaseClient";
+import { Card, CardHeader, CardTitle, CardContent, Separator } from "@/components/ui/card";
 
 export default function SettingsPage() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState({
-    fullName: "Alex Johnson",
-    email: "alex@flowschool.com",
-    location: "San Francisco, CA",
-    website: "alexflow.com",
-    bio: "Passionate flow artist exploring the intersection of movement and mindfulness.",
-    avatar: "/placeholder-user.jpg",
-  })
-  const [activeTab, setActiveTab] = useState("profile")
+    fullName: "",
+    email: "",
+    location: "",
+    website: "",
+    bio: "",
+    avatar: "",
+  });
+  const [activeTab, setActiveTab] = useState("profile");
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
     pushNotifications: true,
@@ -31,30 +35,54 @@ export default function SettingsPage() {
     newCourses: false,
     communityMessages: true,
     weeklyDigest: true,
-  })
+  });
   const [appPreferences, setAppPreferences] = useState({
     theme: "system",
     language: "english",
     timezone: "pacific_time",
     videoQuality: "auto",
     autoplayVideos: true,
-  })
+  });
   const [privacySettings, setPrivacySettings] = useState({
     profileVisibility: "public",
     showLearningProgress: true,
     showCertificates: true,
     allowDirectMessages: true,
-  })
+  });
   const [passwordFields, setPasswordFields] = useState({
     currentPassword: "",
     newPassword: "",
     confirmNewPassword: "",
-  })
+  });
+  const fileInputRef = useRef();
+  const [avatarUploading, setAvatarUploading] = useState(false);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      setUser(data?.user || null);
+      if (data?.user) {
+        setProfile({
+          fullName: data.user.user_metadata?.full_name || "",
+          email: data.user.email || "",
+          location: data.user.user_metadata?.location || "",
+          website: data.user.user_metadata?.website || "",
+          bio: data.user.user_metadata?.bio || "",
+          avatar: data.user.user_metadata?.avatar_url || "/placeholder-user.jpg",
+        });
+      }
+      setLoading(false);
+    };
+    getUser();
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <div>Not logged in</div>;
 
   const handleChange = (e) => {
-    const { id, value } = e.target
-    setProfile((prevProfile) => ({ ...prevProfile, [id]: value }))
-  }
+    const { id, value } = e.target;
+    setProfile((prevProfile) => ({ ...prevProfile, [id]: value }));
+  };
 
   const handleNotificationChange = (id) => {
     setNotificationSettings((prevSettings) => ({
@@ -82,10 +110,72 @@ export default function SettingsPage() {
     setPasswordFields((prevFields) => ({ ...prevFields, [id]: value }))
   }
 
-  const handleSave = () => {
-    console.log("Saving profile:", profile)
-    // Implement save logic here, e.g., API call
-  }
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${user.id}/${Date.now()}.${fileExt}`; // Do NOT include bucket name
+    // Upload to Supabase Storage
+    let { error: uploadError } = await supabase.storage
+      .from('user-avatars')
+      .upload(filePath, file, { upsert: true });
+    if (uploadError) {
+      console.error(uploadError);
+      alert('Error uploading avatar!');
+      setAvatarUploading(false);
+      return;
+    }
+    // Get public URL
+    const { data: publicData } = supabase
+      .storage
+      .from('user-avatars')
+      .getPublicUrl(filePath);
+    const publicURL = publicData?.publicUrl;
+    // Update user_metadata
+    const { error: updateError } = await supabase.auth.updateUser({
+      data: { avatar_url: publicURL }
+    });
+    if (updateError) {
+      alert('Error updating profile!');
+    } else {
+      setProfile((prev) => ({ ...prev, avatar: publicURL }));
+    }
+    setAvatarUploading(false);
+  };
+
+  const handleSave = async () => {
+    const { error } = await supabase.auth.updateUser({
+      data: {
+        full_name: profile.fullName,
+        location: profile.location,
+        website: profile.website,
+        bio: profile.bio,
+        avatar_url: profile.avatar,
+      }
+    });
+    if (error) {
+      alert('Error updating profile!');
+    } else {
+      alert('Profile updated!');
+      window.location.reload();
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    // Remove from storage (optional: only if you want to delete the file)
+    if (profile.avatar && !profile.avatar.includes('/placeholder-user.jpg')) {
+      // Extract the path after the bucket name
+      const urlParts = profile.avatar.split('/user-avatars/');
+      if (urlParts.length === 2) {
+        const filePath = urlParts[1];
+        await supabase.storage.from('user-avatars').remove([filePath]);
+      }
+    }
+    // Set avatar to placeholder
+    setProfile((prev) => ({ ...prev, avatar: "/placeholder-user.jpg" }));
+    await supabase.auth.updateUser({ data: { avatar_url: "/placeholder-user.jpg" } });
+  };
 
   const handleSaveNotifications = () => {
     console.log("Saving notification settings:", notificationSettings)
@@ -204,11 +294,20 @@ export default function SettingsPage() {
               <div className="flex items-center gap-6 mb-6">
                 <Avatar className="h-24 w-24">
                   <AvatarImage src={profile.avatar} />
-                  <AvatarFallback>AJ</AvatarFallback>
+                  <AvatarFallback>{profile.fullName ? profile.fullName.split(" ").map((n) => n[0]).join("") : "U"}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <Button variant="secondary" className="bg-gray-700 text-white hover:bg-gray-600 mr-2">Change Photo</Button>
-                  <Button variant="ghost" className="text-red-400 hover:bg-transparent hover:text-red-500">Remove Photo</Button>
+                  <Button variant="outline" size="sm" className="text-black" onClick={() => fileInputRef.current && fileInputRef.current.click()} disabled={avatarUploading}>
+                    {avatarUploading ? "Uploading..." : "Change Photo"}
+                  </Button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
+                  <Button variant="ghost" className="text-red-400 hover:bg-transparent hover:text-red-500" onClick={handleRemovePhoto}>Remove Photo</Button>
                 </div>
               </div>
 

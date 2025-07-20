@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   User,
   Bell,
@@ -28,11 +28,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
+import { supabase } from "@/lib/supabaseClient";
 
 export function SettingsPage({ onBackClick }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      setUser(data?.user || null);
+      setLoading(false);
+    };
+    getUser();
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <div>Not logged in</div>;
+
   const [profile, setProfile] = useState({
-    name: "Alex Johnson",
-    email: "alex@flowschool.com",
+    name: user.user_metadata?.full_name || "Alex Johnson",
+    email: user.email || "alex@flowschool.com",
     bio: "Passionate flow artist exploring the intersection of movement and mindfulness.",
     location: "San Francisco, CA",
     website: "alexflow.com",

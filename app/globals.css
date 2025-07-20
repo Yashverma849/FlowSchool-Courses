@@ -10,6 +10,12 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  .perspective {
+    perspective: 1200px;
+  }
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
 }
 
 @layer base {

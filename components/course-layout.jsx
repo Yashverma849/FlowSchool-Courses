@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Search, Filter, Play, Clock, Users, Star, LayoutGrid, ListFilter, Flame, BrainCircuit, Dribbble, Target, Sparkles, Sparkle, BellRing } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -17,115 +17,8 @@ import SiteHeader from "@/components/site-header"
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
-
-const coursesData = [
-  {
-    id: 1,
-    title: "Poi Spinning Fundamentals",
-    description: "Master the basics of poi spinning with flowing movements and fundamental techniques",
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    instructor: "Maya Chen",
-    duration: "2h 30m",
-    lessons: 12,
-    students: 1240,
-    rating: 4.8,
-    price: "Free",
-    level: "Beginner",
-    tags: ["Poi", "Beginner", "Free", "Flow Arts"],
-    enrolled: false,
-  },
-  {
-    id: 2,
-    title: "Fire Staff Mastery",
-    description: "Advanced fire staff techniques for experienced flow artists seeking to elevate their practice",
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    instructor: "Alex Rivera",
-    duration: "4h 15m",
-    lessons: 18,
-    students: 856,
-    rating: 4.9,
-    price: "$49",
-    level: "Advanced",
-    tags: ["Fire Staff", "Advanced", "Paid", "Flow Arts"],
-    enrolled: true,
-  },
-  {
-    id: 3,
-    title: "Rope Dart Flow",
-    description: "Explore the ancient art of rope dart with modern flow techniques and safety practices",
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    instructor: "Jin Wu",
-    duration: "3h 45m",
-    lessons: 15,
-    students: 642,
-    rating: 4.7,
-    price: "$39",
-    level: "Intermediate",
-    tags: ["Rope Dart", "Intermediate", "Paid", "Flow Arts"],
-    enrolled: false,
-  },
-  {
-    id: 4,
-    title: "Hoop Dance Basics",
-    description: "Graceful movements and fundamental techniques for hoop dance beginners",
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    instructor: "Luna Star",
-    duration: "2h 15m",
-    lessons: 10,
-    students: 1580,
-    rating: 4.6,
-    price: "Free",
-    level: "Beginner",
-    tags: ["Hoop Dance", "Beginner", "Free", "Flow Arts"],
-    enrolled: false,
-  },
-  {
-    id: 5,
-    title: "Contact Ball Meditation",
-    description: "Mindful movement and meditation through contact ball manipulation",
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    instructor: "Zen Master Ko",
-    duration: "1h 50m",
-    lessons: 8,
-    students: 423,
-    rating: 4.9,
-    price: "$29",
-    level: "All Levels",
-    tags: ["Contact Ball", "Meditation", "Paid", "Flow Arts"],
-    enrolled: true,
-  },
-  {
-    id: 6,
-    title: "Juggling Fundamentals",
-    description: "Learn the art of juggling from basic throws to complex patterns",
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    instructor: "Carlo Tosser",
-    duration: "3h 20m",
-    lessons: 14,
-    students: 2100,
-    rating: 4.5,
-    price: "Free",
-    level: "Beginner",
-    tags: ["Juggling", "Beginner", "Free", "Flow Arts"],
-    enrolled: false,
-  },
-  {
-    id: 7,
-    title: "FLOWCHAKRA TUTORIALS",
-    description: "A curated playlist of Flow Chakra tutorials from YouTube.",
-    thumbnail: "/images/flowchakra.jpg",
-    instructor: "Flow Chakra (YouTube)",
-    duration: "13m 16s",
-    lessons: 6,
-    students: 0,
-    rating: 5.0,
-    price: "Free",
-    level: "All Levels",
-    tags: ["YouTube", "Playlist", "Flow Arts", "Beginner", "Intermediate", "Advanced"],
-    isPlaylist: true,
-    playlistId: "PLguV1vYQuOqh8LAm3CvlTpggarTWkkM3t"
-  },
-]
+import { supabase } from "@/lib/supabaseClient"
+import { CourseCards } from "@/components/course-cards";
 
 function DashboardSidebar({
   filterType, setFilterType,
@@ -160,7 +53,7 @@ function DashboardSidebar({
           >
             Free Courses
             <Badge variant="secondary" className={`${filterType === "free" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300`}>
-              {coursesData.filter((course) => course.price === "Free").length}
+              {coursesData.filter((course) => course.is_free).length}
             </Badge>
           </Button>
           <Button
@@ -170,7 +63,7 @@ function DashboardSidebar({
           >
             Premium Courses
             <Badge variant="secondary" className={`${filterType === "paid" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300`}>
-              {coursesData.filter((course) => course.price !== "Free").length}
+              {coursesData.filter((course) => !course.is_free).length}
             </Badge>
           </Button>
         </div>
@@ -252,11 +145,23 @@ function DashboardSidebar({
 }
 
 export default function CourseLayout() {
+  const [courses, setCourses] = useState([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState("all")
   const [selectedFlowArts, setSelectedFlowArts] = useState("all")
   const [selectedSkillLevel, setSelectedSkillLevel] = useState("all")
   const [ratingFilter, setRatingFilter] = useState([0])
+
+  useEffect(() => {
+    async function fetchCourses() {
+      setLoading(true)
+      const { data, error } = await supabase.from("courses").select("*")
+      setCourses(data || [])
+      setLoading(false)
+    }
+    fetchCourses()
+  }, [])
 
   const flowArtsOptions = [
     { label: "Poi Arts", value: "Poi", icon: <Sparkles className="h-4 w-4" /> },
@@ -273,24 +178,22 @@ export default function CourseLayout() {
     { label: "All Levels", value: "All Levels" },
   ]
 
-  let filteredCourses = coursesData.filter((course) => {
+  let filteredCourses = courses.filter((course) => {
     const matchesSearch =
       course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       course.description.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesFilter =
       filterType === "all" ||
-      (filterType === "free" && course.price === "Free") ||
-      (filterType === "paid" && course.price !== "Free")
+      (filterType === "free" && course.is_free) ||
+      (filterType === "paid" && !course.is_free)
     const matchesFlowArt =
-      selectedFlowArts === "all" || course.tags.includes(selectedFlowArts)
+      selectedFlowArts === "all" || (course.tags && course.tags.includes(selectedFlowArts))
     const matchesSkillLevel =
       selectedSkillLevel === "all" || course.level === selectedSkillLevel
     const matchesRating = course.rating >= ratingFilter[0]
 
     return matchesSearch && matchesFilter && matchesFlowArt && matchesSkillLevel && matchesRating
   })
-  // Always show FLOWCHAKRA TUTORIALS (id: 7) at the top
-  filteredCourses = filteredCourses.sort((a, b) => (a.id === 7 ? -1 : b.id === 7 ? 1 : 0))
 
   const sidebarToggle = (
     <Sheet>
@@ -310,13 +213,15 @@ export default function CourseLayout() {
           setSelectedSkillLevel={setSelectedSkillLevel}
           ratingFilter={ratingFilter}
           setRatingFilter={setRatingFilter}
-          coursesData={coursesData}
+          coursesData={courses}
           flowArtsOptions={flowArtsOptions}
           skillLevelOptions={skillLevelOptions}
         />
       </SheetContent>
     </Sheet>
   )
+
+  if (loading) return <div className="p-8 text-white">Loading courses...</div>
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
@@ -333,13 +238,13 @@ export default function CourseLayout() {
             setSelectedSkillLevel={setSelectedSkillLevel}
             ratingFilter={ratingFilter}
             setRatingFilter={setRatingFilter}
-            coursesData={coursesData}
+            coursesData={courses}
             flowArtsOptions={flowArtsOptions}
             skillLevelOptions={skillLevelOptions}
           />
         </div>
         {/* Main Content */}
-        <div className="flex-1 p-8">
+        <div className="flex-1 p-8 overflow-y-auto">
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
               <div>
@@ -370,7 +275,7 @@ export default function CourseLayout() {
             </div>
           </div>
 
-          <CoursesDashboard courses={filteredCourses} />
+          <CourseCards courses={filteredCourses} />
         </div>
       </div>
     </div>
