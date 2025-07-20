@@ -246,33 +246,7 @@ export default function CourseLayout() {
         {/* Main Content */}
         <div className="flex-1 p-8 overflow-y-auto">
           <div className="mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-              <div>
-                <h2 className="text-4xl font-extrabold text-white leading-tight mb-2">Flow Arts Courses</h2>
-                <p className="text-gray-400 max-w-2xl">
-                  Discover the art of movement, rhythm, and creative expression through our curated collection of courses.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2 sm:mt-0">
-                <span className="text-lg font-semibold text-gray-200 whitespace-nowrap">
-                  {filteredCourses.length} <span className="font-normal text-gray-400">courses found</span>
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="hidden sm:inline">Filter:</span>
-                  <Button
-                    variant="secondary"
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full px-4"
-                    onClick={() => setFilterType("all")}
-                  >
-                    {filterType === "all"
-                      ? "All Courses"
-                      : filterType === "free"
-                        ? "Free Courses"
-                        : "Premium Courses"}
-                  </Button>
-                </div>
-              </div>
-            </div>
+            {/* Removed duplicate heading, description, and filter UI. Now handled by CourseCards. */}
           </div>
 
           <CourseCards courses={filteredCourses} />
