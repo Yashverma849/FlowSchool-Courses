@@ -115,19 +115,13 @@ function SidebarContent() {
             <button
               key={type.value}
               onClick={() => updateFilter("courseType", type.value)}
-              className={`flex w-full items-center justify-between rounded-lg p-3 text-left transition-all ${
+              className={`flex w-full items-center justify-start rounded-lg p-3 text-left transition-all ${
                 filters.courseType === type.value
                   ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md"
                   : "bg-gray-800/50 hover:bg-gray-700/50 text-gray-300"
               }`}
             >
               <span className="text-sm font-medium">{type.label}</span>
-              <Badge
-                variant="secondary"
-                className={filters.courseType === type.value ? "bg-white/20 text-white" : "bg-gray-700 text-gray-300"}
-              >
-                {type.count}
-              </Badge>
             </button>
           ))}
         </div>
@@ -141,7 +135,7 @@ function SidebarContent() {
             <div
               key={art.value}
               onClick={() => toggleArrayFilter("flowArts", art.value)}
-              className={`flex items-center justify-between rounded-lg p-2 transition-colors cursor-pointer ${
+              className={`flex items-center justify-start rounded-lg p-2 transition-colors cursor-pointer ${
                 filters.flowArts.includes(art.value)
                   ? "bg-purple-900/50 border border-purple-700"
                   : "hover:bg-gray-800/50"
@@ -151,7 +145,6 @@ function SidebarContent() {
                 <span className="text-lg">{art.icon}</span>
                 <span className="text-sm text-gray-300">{art.label}</span>
               </div>
-              <span className="text-sm text-gray-500">{art.count}</span>
             </div>
           ))}
         </div>
@@ -165,7 +158,7 @@ function SidebarContent() {
             <div
               key={level.value}
               onClick={() => toggleArrayFilter("skillLevel", level.value)}
-              className={`flex items-center justify-between rounded-lg p-2 transition-colors cursor-pointer ${
+              className={`flex items-center justify-start rounded-lg p-2 transition-colors cursor-pointer ${
                 filters.skillLevel.includes(level.value)
                   ? "bg-purple-900/50 border border-purple-700"
                   : "hover:bg-gray-800/50"
@@ -175,7 +168,6 @@ function SidebarContent() {
                 <div className={`h-3 w-3 rounded-full ${level.color.split(" ")[0]}`} />
                 <span className="text-sm text-gray-300">{level.label}</span>
               </div>
-              <span className="text-sm text-gray-500">{level.count}</span>
             </div>
           ))}
         </div>
@@ -197,15 +189,12 @@ function SidebarContent() {
             return (
               <div
                 key={item.label}
-                className="flex items-center justify-between rounded-lg p-2 hover:bg-gray-800/50 transition-colors cursor-pointer"
+                className="flex items-center justify-start rounded-lg p-2 hover:bg-gray-800/50 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <Icon className={`h-4 w-4 ${item.color}`} />
                   <span className="text-sm text-gray-300">{item.label}</span>
                 </div>
-                <Badge variant="secondary" className="bg-gray-800 text-gray-300 shadow-sm">
-                  {item.count}
-                </Badge>
               </div>
             )
           })}
@@ -219,7 +208,7 @@ export function ModernSidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block w-80 border-r border-gray-800 bg-gray-950/50 backdrop-blur-sm p-6 h-[calc(100vh-4rem)] overflow-y-auto">
+      <div className="hidden lg:block w-80 border-r border-gray-800 bg-gray-950/50 backdrop-blur-sm p-6 fixed left-0 top-24 h-[calc(100vh-6rem)] overflow-y-auto z-40 scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-purple-600 hover:scrollbar-thumb-purple-500">
         <SidebarContent />
       </div>
 
@@ -235,7 +224,7 @@ export function ModernSidebar() {
               Filters & Categories
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-80 p-6 overflow-y-auto bg-gray-950 border-gray-800">
+          <SheetContent side="left" className="w-80 p-6 overflow-y-auto bg-gray-950 border-gray-800 scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-purple-600 hover:scrollbar-thumb-purple-500">
             <SidebarContent />
           </SheetContent>
         </Sheet>

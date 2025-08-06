@@ -8,20 +8,25 @@ import { Progress } from "@/components/ui/progress"
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { EnrollmentService } from "@/lib/enrollmentService";
 import AuthOverlay from "@/app/auth-overlay";
+import { useToast } from "@/hooks/use-toast";
+import { useEnrollment } from "@/hooks/use-enrollment";
 
 export function CourseCards({ courses }) {
   const router = useRouter();
-  const [user, setUser] = useState(null);
   const [authOpen, setAuthOpen] = useState(false);
+  const [loading, setLoading] = useState({});
+  const { toast } = useToast();
+  const { user, enrollments, checkMultipleEnrollments, enrollInCourse } = useEnrollment();
 
+  // Fetch enrollment status for all courses
   useEffect(() => {
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data?.user || null);
-    };
-    getUser();
-  }, []);
+    if (user && courses.length > 0) {
+      const courseIds = courses.map(course => course.id);
+      checkMultipleEnrollments(courseIds);
+    }
+  }, [user, courses, checkMultipleEnrollments]);
 
   // Sort so FLOWCHAKRA TUTORIALS is always first
   const sortedCourses = [...courses].sort((a, b) => {
@@ -30,12 +35,55 @@ export function CourseCards({ courses }) {
     return 0;
   });
 
-  const handleCourseClick = (courseId) => {
+  const handleCourseClick = async (course) => {
     if (!user) {
       setAuthOpen(true);
       return;
     }
-    router.push(`/courses/${courseId}`);
+
+    // Check if user is enrolled
+    const isEnrolled = enrollments[course.id];
+    
+    if (isEnrolled) {
+      // User is enrolled, navigate to course
+      router.push(`/courses/${course.id}`);
+      return;
+    }
+
+    // For free courses, enroll the user first
+    if (course.is_free) {
+      setLoading(prev => ({ ...prev, [course.id]: true }));
+      
+      try {
+        const result = await enrollInCourse(course.id);
+        
+        if (result.success) {
+          toast({
+            title: "Success!",
+            description: result.message,
+            variant: "default",
+          });
+          
+          // Navigate to course after successful enrollment
+          router.push(`/courses/${course.id}`);
+        }
+      } catch (error) {
+        toast({
+          title: "Enrollment Failed",
+          description: error.message || "Failed to enroll in course",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(prev => ({ ...prev, [course.id]: false }));
+      }
+    } else {
+      // For premium courses, show upgrade message
+      toast({
+        title: "Premium Course",
+        description: "This course requires a premium subscription to enroll.",
+        variant: "default",
+      });
+    }
   };
 
   return (
@@ -159,14 +207,27 @@ export function CourseCards({ courses }) {
               </CardContent>
               <CardFooter className="p-6 pt-0">
                 <Button
-                  onClick={() => handleCourseClick(course.id)}
+                  onClick={() => handleCourseClick(course)}
+                  disabled={loading[course.id]}
                   className={`w-full transition-all duration-300 ${
-                    course.is_free
+                    enrollments[course.id]
+                      ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg"
+                      : course.is_free
                       ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg"
                       : "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg"
                   }`}
                 >
-                  {course.is_free ? (
+                  {loading[course.id] ? (
+                    <>
+                      Enrolling...
+                      <div className="ml-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    </>
+                  ) : enrollments[course.id] ? (
+                    <>
+                      Continue Learning
+                      <Play className="ml-2 h-4 w-4" />
+                    </>
+                  ) : course.is_free ? (
                     <>
                       Start Learning
                       <Play className="ml-2 h-4 w-4" />

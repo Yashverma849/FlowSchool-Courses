@@ -98,3 +98,46 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom Scrollbar Styles */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+  
+  .scrollbar-track-gray-900 {
+    scrollbar-color: #111827 transparent;
+  }
+  
+  .scrollbar-thumb-purple-600 {
+    scrollbar-color: #9333ea transparent;
+  }
+  
+  .scrollbar-thumb-purple-500 {
+    scrollbar-color: #a855f7 transparent;
+  }
+  
+  /* Webkit scrollbar styles for Chrome/Safari */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scrollbar-track-gray-900::-webkit-scrollbar-track {
+    background: #111827;
+    border-radius: 3px;
+  }
+  
+  .scrollbar-thumb-purple-600::-webkit-scrollbar-thumb {
+    background: #9333ea;
+    border-radius: 3px;
+  }
+  
+  .scrollbar-thumb-purple-600::-webkit-scrollbar-thumb:hover {
+    background: #a855f7;
+  }
+  
+  .scrollbar-thumb-purple-500::-webkit-scrollbar-thumb {
+    background: #a855f7;
+    border-radius: 3px;
+  }
+}

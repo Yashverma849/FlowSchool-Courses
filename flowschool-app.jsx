@@ -43,7 +43,9 @@ export default function FlowSchoolApp() {
         return (
           <div className="flex flex-col lg:flex-row">
             <ModernSidebar />
-            <ModernCourseCards onCourseClick={handleCourseClick} />
+            <div className="flex-1 lg:ml-80 lg:pt-6">
+              <ModernCourseCards onCourseClick={handleCourseClick} />
+            </div>
           </div>
         )
     }

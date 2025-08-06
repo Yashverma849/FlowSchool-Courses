@@ -51,14 +51,11 @@ function SidebarContent() {
           {courseTypes.map((type) => (
             <div
               key={type.value}
-              className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+              className={`flex items-center justify-start p-3 rounded-lg cursor-pointer transition-colors ${
                 type.value === "all" ? "bg-gray-900 text-white" : "hover:bg-gray-50"
               }`}
             >
               <span className="text-sm font-medium">{type.label}</span>
-              <Badge variant="secondary" className="bg-gray-100 text-gray-600">
-                {type.count}
-              </Badge>
             </div>
           ))}
         </div>
@@ -69,9 +66,8 @@ function SidebarContent() {
         <h3 className="font-medium text-gray-900">Flow Arts</h3>
         <div className="space-y-2">
           {flowArts.map((art) => (
-            <div key={art.label} className="flex items-center justify-between py-2">
+            <div key={art.label} className="flex items-center justify-start py-2">
               <span className="text-sm text-gray-700">{art.label}</span>
-              <span className="text-sm text-gray-500">{art.count}</span>
             </div>
           ))}
         </div>
@@ -82,9 +78,8 @@ function SidebarContent() {
         <h3 className="font-medium text-gray-900">Skill Level</h3>
         <div className="space-y-2">
           {skillLevels.map((level) => (
-            <div key={level.label} className="flex items-center justify-between py-2">
+            <div key={level.label} className="flex items-center justify-start py-2">
               <span className="text-sm text-gray-700">{level.label}</span>
-              <span className="text-sm text-gray-500">{level.count}</span>
             </div>
           ))}
         </div>
@@ -100,11 +95,8 @@ function SidebarContent() {
         </CardHeader>
         <CardContent className="space-y-2">
           {myLearning.map((item) => (
-            <div key={item.label} className="flex items-center justify-between py-1">
+            <div key={item.label} className="flex items-center justify-start py-1">
               <span className="text-sm text-gray-700">{item.label}</span>
-              <Badge variant="secondary" className="bg-gray-900 text-white">
-                {item.count}
-              </Badge>
             </div>
           ))}
         </CardContent>
@@ -130,7 +122,7 @@ export function ResponsiveSidebar() {
               Filters
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-80 p-6">
+          <SheetContent side="left" className="w-80 p-6 scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-purple-600 hover:scrollbar-thumb-purple-500">
             <SidebarContent />
           </SheetContent>
         </Sheet>

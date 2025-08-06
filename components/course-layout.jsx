@@ -28,7 +28,7 @@ function DashboardSidebar({
   coursesData, flowArtsOptions, skillLevelOptions
 }) {
   return (
-    <div className="w-64 bg-gray-900 border-r border-gray-800 p-6 flex-shrink-0 h-full overflow-y-auto">
+    <div className="w-64 bg-gray-900 border-r border-gray-800 p-6 fixed left-0 top-24 h-[calc(100vh-6rem)] overflow-y-auto z-40 scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-purple-600 hover:scrollbar-thumb-purple-500">
       <div className="flex items-center gap-2 text-lg font-semibold text-purple-400 mb-6">
         <ListFilter className="h-5 w-5" />
         Filters
@@ -38,33 +38,24 @@ function DashboardSidebar({
         <div className="space-y-2">
           <Button
             variant="ghost"
-            className={`w-full justify-between text-left ${filterType === "all" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
+            className={`w-full justify-start text-left ${filterType === "all" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
             onClick={() => setFilterType("all")}
           >
             All Courses
-            <Badge variant="secondary" className={`${filterType === "all" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300`}>
-              {coursesData.length}
-            </Badge>
           </Button>
           <Button
             variant="ghost"
-            className={`w-full justify-between text-left ${filterType === "free" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
+            className={`w-full justify-start text-left ${filterType === "free" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
             onClick={() => setFilterType("free")}
           >
             Free Courses
-            <Badge variant="secondary" className={`${filterType === "free" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300`}>
-              {coursesData.filter((course) => course.is_free).length}
-            </Badge>
           </Button>
           <Button
             variant="ghost"
-            className={`w-full justify-between text-left ${filterType === "paid" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
+            className={`w-full justify-start text-left ${filterType === "paid" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
             onClick={() => setFilterType("paid")}
           >
             Premium Courses
-            <Badge variant="secondary" className={`${filterType === "paid" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300`}>
-              {coursesData.filter((course) => !course.is_free).length}
-            </Badge>
           </Button>
         </div>
       </div>
@@ -81,9 +72,6 @@ function DashboardSidebar({
             >
               {option.icon}
               {option.label}
-              <Badge variant="secondary" className={`${selectedFlowArts === option.value ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300 ml-auto`}>
-                {coursesData.filter((course) => course.tags.includes(option.value)).length}
-              </Badge>
             </Button>
           ))}
           <Button
@@ -92,9 +80,6 @@ function DashboardSidebar({
             onClick={() => setSelectedFlowArts("all")}
           >
             All Flow Arts
-            <Badge variant="secondary" className={`${selectedFlowArts === "all" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300 ml-auto`}>
-              {coursesData.filter((course) => course.tags.some(tag => flowArtsOptions.map(opt => opt.value).includes(tag))).length}
-            </Badge>
           </Button>
         </div>
       </div>
@@ -109,9 +94,6 @@ function DashboardSidebar({
               onClick={() => setSelectedSkillLevel(option.value)}
             >
               {option.label}
-              <Badge variant="secondary" className={`${selectedSkillLevel === option.value ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300 ml-auto`}>
-                {coursesData.filter((course) => course.level === option.value).length}
-              </Badge>
             </Button>
           ))}
           <Button
@@ -120,9 +102,6 @@ function DashboardSidebar({
             onClick={() => setSelectedSkillLevel("all")}
           >
             All Levels
-            <Badge variant="secondary" className={`${selectedSkillLevel === "all" ? "bg-purple-600/50" : "bg-gray-700"} text-gray-300 ml-auto`}>
-              {coursesData.length}
-            </Badge>
           </Button>
         </div>
       </div>
@@ -203,7 +182,7 @@ export default function CourseLayout() {
           <span className="sr-only">Open Filters</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-64 p-0 bg-gray-900 border-gray-800">
+      <SheetContent side="left" className="w-64 p-0 bg-gray-900 border-gray-800 scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-purple-600 hover:scrollbar-thumb-purple-500">
         <DashboardSidebar
           filterType={filterType}
           setFilterType={setFilterType}
@@ -228,7 +207,7 @@ export default function CourseLayout() {
       <SiteHeader sidebarToggle={sidebarToggle} />
       <div className="flex">
         {/* Desktop Sidebar */}
-        <div className="hidden lg:block h-full">
+        <div className="hidden lg:block">
           <DashboardSidebar
             filterType={filterType}
             setFilterType={setFilterType}
@@ -244,7 +223,7 @@ export default function CourseLayout() {
           />
         </div>
         {/* Main Content */}
-        <div className="flex-1 p-8 overflow-y-auto">
+        <div className="flex-1 lg:ml-64 lg:pt-6 p-8 overflow-y-auto">
           <div className="mb-8">
             {/* Removed duplicate heading, description, and filter UI. Now handled by CourseCards. */}
           </div>

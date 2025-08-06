@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { ChevronLeft, Star, Menu } from "lucide-react"
+import { ChevronLeft, Star, Menu, Lock } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
+import { EnrollmentService } from "@/lib/enrollmentService"
 import SiteHeader from "@/components/site-header"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button"
+import { useToast } from "@/hooks/use-toast"
 
 function CourseSidebar({ course, lessons, currentLesson, setCurrentLesson }) {
   return (
@@ -43,6 +46,19 @@ export default function CourseContentPage({ params }) {
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentLesson, setCurrentLesson] = useState(null);
+  const [user, setUser] = useState(null);
+  const [enrollment, setEnrollment] = useState(null);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [enrolling, setEnrolling] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data?.user || null);
+    };
+    getUser();
+  }, []);
 
   useEffect(() => {
     async function fetchCourseAndLessons() {
@@ -67,32 +83,114 @@ export default function CourseContentPage({ params }) {
     if (courseId) fetchCourseAndLessons();
   }, [courseId]);
 
+  // Check enrollment status
+  useEffect(() => {
+    const checkEnrollment = async () => {
+      if (!user || !courseId) return;
+      
+      try {
+        const enrollmentData = await EnrollmentService.getEnrollmentProgress(user.id, courseId);
+        if (enrollmentData) {
+          setEnrollment(enrollmentData);
+          setIsEnrolled(true);
+        }
+      } catch (error) {
+        console.error('Error checking enrollment:', error);
+      }
+    };
+
+    checkEnrollment();
+  }, [user, courseId]);
+
   if (loading) return <div className="p-8 text-white">Loading...</div>;
   if (!course) return <div className="p-8 text-red-400">Course not found</div>;
 
-  // Sidebar toggle for mobile (icon only)
-    const sidebarToggle = (
-      <Sheet>
-        <SheetTrigger asChild>
-        <button className="flex items-center justify-center p-2 bg-gray-800 text-white rounded-lg shadow hover:bg-gray-700">
-            <Menu className="h-5 w-5" />
-        </button>
-        </SheetTrigger>
-      <SheetContent side="left" className="w-80 p-0 bg-gray-900 border-r border-gray-800">
-        <CourseSidebar course={course} lessons={lessons} currentLesson={currentLesson} setCurrentLesson={setCurrentLesson} />
-        </SheetContent>
-      </Sheet>
-    );
+  // Check if user can access the course
+  const canAccessCourse = course.is_free || isEnrolled;
+  const showEnrollmentPrompt = !isEnrolled && course.is_free && user;
 
+  // Handle enrollment
+  const handleEnroll = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to enroll in this course.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setEnrolling(true);
+    try {
+      const result = await EnrollmentService.enrollUser(user.id, courseId);
+      
+      if (result.success) {
+        setIsEnrolled(true);
+        setEnrollment(result.data);
+        toast({
+          title: "Success!",
+          description: result.message,
+          variant: "default",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Enrollment Failed",
+        description: error.message || "Failed to enroll in course",
+        variant: "destructive",
+      });
+    } finally {
+      setEnrolling(false);
+    }
+  };
+
+  // Sidebar toggle for mobile (icon only)
+  const sidebarToggle = (
+    <Sheet>
+      <SheetTrigger asChild>
+      <button className="flex items-center justify-center p-2 bg-gray-800 text-white rounded-lg shadow hover:bg-gray-700">
+          <Menu className="h-5 w-5" />
+      </button>
+      </SheetTrigger>
+    <SheetContent side="left" className="w-80 p-0 bg-gray-900 border-r border-gray-800">
+      <CourseSidebar course={course} lessons={lessons} currentLesson={currentLesson} setCurrentLesson={setCurrentLesson} />
+      </SheetContent>
+    </Sheet>
+  );
+
+  // If user is not enrolled and course is not free, show access denied
+  if (!canAccessCourse) {
     return (
       <div className="min-h-screen bg-gray-950 text-white flex flex-col">
         <SiteHeader sidebarToggle={sidebarToggle} />
-        <div className="flex flex-1">
-          {/* Desktop Sidebar */}
-        <div className="hidden lg:block">
-          <CourseSidebar course={course} lessons={lessons} currentLesson={currentLesson} setCurrentLesson={setCurrentLesson} />
-                  </div>
-        <div className="flex-1 p-8">
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="text-center max-w-md">
+            <Lock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold mb-4">Course Access Required</h1>
+            <p className="text-gray-400 mb-6">
+              You need to enroll in this course to access its content.
+            </p>
+            <Button
+              onClick={() => window.history.back()}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+            >
+              Go Back
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-950 text-white flex flex-col">
+      <SiteHeader sidebarToggle={sidebarToggle} />
+      <div className="flex flex-1">
+        {/* Desktop Sidebar */}
+      <div className="hidden lg:block">
+        <CourseSidebar course={course} lessons={lessons} currentLesson={currentLesson} setCurrentLesson={setCurrentLesson} />
+                </div>
+      <div className="flex-1 p-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <div>
               <h1 className="text-4xl font-extrabold mb-2">{course.title}</h1>
@@ -104,8 +202,35 @@ export default function CourseContentPage({ params }) {
               <p className="text-gray-400 max-w-2xl mb-2">{course.description}</p>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <span className="text-lg font-semibold text-purple-400">0% Complete <span className="text-gray-500 text-sm">Keep going!</span></span>
-              <div className="w-48"><Progress value={0} /></div>
+              {showEnrollmentPrompt ? (
+                <div className="text-center">
+                  <p className="text-gray-400 mb-2">Ready to start learning?</p>
+                  <Button
+                    onClick={handleEnroll}
+                    disabled={enrolling}
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
+                  >
+                    {enrolling ? (
+                      <>
+                        Enrolling...
+                        <div className="ml-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      </>
+                    ) : (
+                      "Enroll Now"
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <span className="text-lg font-semibold text-purple-400">
+                    {enrollment?.progress_percentage || 0}% Complete 
+                    <span className="text-gray-500 text-sm">Keep going!</span>
+                  </span>
+                  <div className="w-48">
+                    <Progress value={enrollment?.progress_percentage || 0} />
+                  </div>
+                </>
+              )}
             </div>
           </div>
           <div className="bg-gray-900 rounded-lg p-6 shadow-lg">
