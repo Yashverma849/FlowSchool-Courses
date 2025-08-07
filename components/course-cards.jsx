@@ -20,6 +20,16 @@ export function CourseCards({ courses }) {
   const { toast } = useToast();
   const { user, enrollments, checkMultipleEnrollments, enrollInCourse } = useEnrollment();
 
+  // Razorpay script loader
+  useEffect(() => {
+    if (!window.Razorpay) {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
   // Fetch enrollment status for all courses
   useEffect(() => {
     if (user && courses.length > 0) {
@@ -50,7 +60,6 @@ export function CourseCards({ courses }) {
       return;
     }
 
-    // For free courses, enroll the user first
     if (course.is_free) {
       setLoading(prev => ({ ...prev, [course.id]: true }));
       
@@ -77,12 +86,77 @@ export function CourseCards({ courses }) {
         setLoading(prev => ({ ...prev, [course.id]: false }));
       }
     } else {
-      // For premium courses, show upgrade message
-      toast({
-        title: "Premium Course",
-        description: "This course requires a premium subscription to enroll.",
-        variant: "default",
-      });
+      // Paid course: Razorpay flow
+      setLoading(prev => ({ ...prev, [course.id]: true }));
+      try {
+        // 1. Create Razorpay order
+        const orderRes = await fetch('/api/razorpay/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: user.id, course_id: course.id })
+        });
+        const { order, error } = await orderRes.json();
+        if (error || !order) throw new Error(error || 'Failed to create order');
+
+        // 2. Open Razorpay Checkout
+        const options = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          amount: order.amount,
+          currency: order.currency,
+          name: course.title,
+          description: course.description || 'Course Purchase',
+          order_id: order.id,
+          handler: async function (response) {
+            // 3. On payment success, verify and enroll
+            // Get the user's access token
+            const session = await supabase.auth.getSession();
+            const access_token = session?.data?.session?.access_token;
+            const verifyRes = await fetch('/api/razorpay/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                user_id: user.id,
+                course_id: course.id,
+                amount: order.amount / 100, // convert paise to INR
+                access_token,
+              })
+            });
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              toast({
+                title: 'Enrollment Successful',
+                description: 'You have been enrolled in the course!',
+                variant: 'default',
+              });
+              router.push(`/courses/${course.id}`);
+            } else {
+              toast({
+                title: 'Payment Verification Failed',
+                description: verifyData.error || 'Could not verify payment.',
+                variant: 'destructive',
+              });
+            }
+          },
+          prefill: {
+            email: user.email,
+            name: user.full_name || '',
+          },
+          theme: { color: '#7c3aed' },
+        };
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } catch (error) {
+        toast({
+          title: 'Payment Error',
+          description: error.message || 'Could not initiate payment.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(prev => ({ ...prev, [course.id]: false }));
+      }
     }
   };
 
@@ -234,7 +308,7 @@ export function CourseCards({ courses }) {
                     </>
                   ) : (
                     <>
-                      Enroll Now
+                      Enroll Now ₹1
                       <Play className="ml-2 h-4 w-4" />
                     </>
                   )}
