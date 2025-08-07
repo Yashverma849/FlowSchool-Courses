@@ -208,7 +208,7 @@ export function ModernSidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block w-80 border-r border-gray-800 bg-gray-950/50 backdrop-blur-sm p-6 fixed left-0 top-24 h-[calc(100vh-6rem)] overflow-y-auto z-40 scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-purple-600 hover:scrollbar-thumb-purple-500">
+      <div className="hidden lg:block w-80 border-r border-gray-800 bg-gray-950/50 backdrop-blur-sm p-6 fixed left-0 top-16 h-[calc(100vh-4rem)] overflow-y-auto z-40 scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-purple-600 hover:scrollbar-thumb-purple-500">
         <SidebarContent />
       </div>
 

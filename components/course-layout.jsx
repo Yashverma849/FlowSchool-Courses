@@ -28,7 +28,7 @@ function DashboardSidebar({
   coursesData, flowArtsOptions, skillLevelOptions
 }) {
   return (
-    <div className="w-64 bg-gray-900 border-r border-gray-800 p-6 fixed left-0 top-24 h-[calc(100vh-6rem)] overflow-y-auto z-40 scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-purple-600 hover:scrollbar-thumb-purple-500">
+    <div className="w-64 bg-gray-900 border-r border-gray-800 p-6 fixed left-0 top-16 h-[calc(100vh-4rem)] overflow-y-auto z-40 scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-purple-600 hover:scrollbar-thumb-purple-500">
       <div className="flex items-center gap-2 text-lg font-semibold text-purple-400 mb-6">
         <ListFilter className="h-5 w-5" />
         Filters
@@ -107,17 +107,21 @@ function DashboardSidebar({
       </div>
       <div className="mb-8">
         <h3 className="text-gray-300 text-sm uppercase tracking-wider mb-3">Rating</h3>
-        <div className="flex items-center gap-2">
-          <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-          <span className="text-gray-300">{ratingFilter[0].toFixed(1)} & up</span>
+        <div className="space-y-2">
+          {[0, 1, 2, 3, 4, 5].map((rating) => (
+            <Button
+              key={rating}
+              variant="ghost"
+              className={`w-full justify-start text-left gap-2 ${ratingFilter[0] === rating ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
+              onClick={() => setRatingFilter([rating])}
+            >
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                <span>{rating === 0 ? "Any Rating" : `${rating}.0 & up`}</span>
+              </div>
+            </Button>
+          ))}
         </div>
-        <Slider
-          value={ratingFilter}
-          onValueChange={setRatingFilter}
-          max={5}
-          step={0.1}
-          className="mt-2"
-        />
       </div>
     </div>
   )

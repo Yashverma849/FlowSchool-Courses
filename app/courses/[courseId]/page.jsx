@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast"
 function CourseSidebar({ course, lessons, currentLesson, setCurrentLesson }) {
   return (
     <div className="w-80 bg-gray-900 border-r border-gray-800 flex-shrink-0 p-6 overflow-y-auto h-full">
-          <Link href="/" className="flex items-center text-gray-400 hover:text-purple-400 mb-6">
+          <Link href="/my-learning" className="flex items-center text-gray-400 hover:text-purple-400 mb-6">
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back to Courses
           </Link>

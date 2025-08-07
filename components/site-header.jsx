@@ -16,12 +16,20 @@ export default function SiteHeader({ sidebarToggle }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authOpen, setAuthOpen] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [flipAnimation, setFlipAnimation] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
       const { data, error } = await supabase.auth.getUser();
       setUser(data?.user || null);
       setLoading(false);
+      
+      // Show welcome animation after user loads
+      if (data?.user) {
+        setShowWelcome(true);
+        setTimeout(() => setFlipAnimation(true), 4000); // 4 seconds for first message
+      }
     };
     getUser();
   }, []);
@@ -30,7 +38,20 @@ export default function SiteHeader({ sidebarToggle }) {
   async function handleLogout() {
     await supabase.auth.signOut();
     setUser(null);
+    setShowWelcome(false);
+    setFlipAnimation(false);
   }
+
+  // Loop animation effect
+  useEffect(() => {
+    if (showWelcome && user) {
+      const interval = setInterval(() => {
+        setFlipAnimation(prev => !prev);
+      }, 4000); // Switch every 4 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [showWelcome, user]);
 
   function getGravatarUrl(email) {
     if (!email) return "/placeholder-user.jpg";
@@ -40,12 +61,12 @@ export default function SiteHeader({ sidebarToggle }) {
 
   return (
     <div className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
           <div className="flex flex-col items-start gap-2">
             <Link href="/" className="flex items-center gap-3 group">
-              <Sparkle className="h-8 w-8 text-purple-400 group-hover:scale-110 transition-transform" />
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent group-hover:underline">
+              <Sparkle className="h-6 w-6 text-purple-400 group-hover:scale-110 transition-transform" />
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent group-hover:underline">
                 FlowSchool
               </h1>
             </Link>
@@ -67,9 +88,22 @@ export default function SiteHeader({ sidebarToggle }) {
           </div>
 
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
-              <BellRing className="h-5 w-5" />
-            </Button>
+            {/* Welcome Message */}
+            {user && (
+              <div className="hidden lg:flex items-center gap-3 text-white">
+                <div className="relative h-6 overflow-hidden w-64">
+                  <div className={`absolute inset-0 transition-all duration-1000 ease-out ${flipAnimation ? 'opacity-0 -translate-y-full' : 'opacity-100 translate-y-0'}`}>
+                    <span className="text-sm font-medium text-white">
+                      Hi Yash Verma!
+                    </span>
+                  </div>
+                  <div className={`absolute inset-0 transition-all duration-1000 ease-out ${flipAnimation ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full'}`}>
+                    <span className="text-sm text-purple-300">Welcome Back To Flow Journey</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {loading ? null : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

@@ -190,7 +190,7 @@ export function CourseCards({ courses }) {
           {sortedCourses.map((course) => (
             <Card
               key={course.id}
-              className="group overflow-hidden border-0 bg-gray-900/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 border border-gray-800"
+              className="group overflow-hidden border-0 bg-gray-900/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 border border-gray-800 flex flex-col h-full"
             >
               <CardHeader className="p-0 relative overflow-hidden">
                 <div className="relative">
@@ -240,13 +240,15 @@ export function CourseCards({ courses }) {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
+              <CardContent className="p-6 flex-1 flex flex-col">
+                <div className="space-y-4 flex-1 flex flex-col">
                   <div>
                     <h3 className="font-semibold text-lg text-gray-100 mb-2 group-hover:text-purple-400 transition-colors">
                       {course.title}
                     </h3>
-                    <p className="text-sm text-gray-400 line-clamp-2 leading-relaxed">{course.description}</p>
+                    <p className="text-sm text-gray-400 line-clamp-2 leading-relaxed min-h-[56px] sm:min-h-[48px] lg:min-h-[40px]">
+                      {course.description}
+                    </p>
                   </div>
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-gray-500">
@@ -280,6 +282,7 @@ export function CourseCards({ courses }) {
                 </div>
               </CardContent>
               <CardFooter className="p-6 pt-0">
+                {/* Always render the action button in the footer for consistent layout */}
                 <Button
                   onClick={() => handleCourseClick(course)}
                   disabled={loading[course.id]}

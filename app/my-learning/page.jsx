@@ -1,319 +1,420 @@
 "use client"
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import Link from "next/link"
-import { BookOpen, TrendingUp, CheckCircle, Clock, Filter, Grid3X3, List, BookCheck, Star } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
+import React from "react"
 import SiteHeader from "@/components/site-header"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Play, Star, ChevronDown } from "lucide-react"
+import { supabase } from "@/lib/supabaseClient"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import Link from "next/link"
 
-// Mock data for enrolled courses (similar to coursesData but with progress)
-const enrolledCoursesData = [
-  {
-    id: 1,
-    title: "Poi Spinning Fundamentals",
-    description: "Master the basics of poi spinning with flowing movements and fundamental techniques",
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    instructor: "Maya Chen",
-    duration: "6h 18m", // Updated duration to match image
-    lessons: 18, // Updated lessons to match image
-    students: 1247, // Updated students to match image
-    rating: 4.8,
-    price: "Free",
-    level: "Beginner",
-    tags: ["Poi", "Beginner", "Flow Arts"],
-    enrolled: true,
-    progress: 75,
-    status: "In Progress",
-  },
-  {
-    id: 2,
-    title: "Rope Dart Fundamentals",
-    description: "Explore the ancient Chinese weapon art form, combining modern martial arts precision...",
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    instructor: "Jin Wu",
-    duration: "7h 21m",
-    lessons: 21,
-    students: 1200,
-    rating: 4.8,
-    price: "Premium",
-    level: "Intermediate",
-    tags: ["Rope Dart", "Martial Arts", "Traditional"],
-    enrolled: true,
-    progress: 30,
-    status: "In Progress",
-  },
-  {
-    id: 3,
-    title: "Fire Staff Mastery",
-    description: "Advanced fire staff techniques for experienced flow artists seeking to elevate their practice",
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    instructor: "Alex Rivera",
-    duration: "8h 24m",
-    lessons: 24,
-    students: 1200,
-    rating: 4.8,
-    price: "Premium",
-    level: "Advanced",
-    tags: ["Fire Staff", "Advanced", "Flow Arts"],
-    enrolled: true,
-    progress: 50,
-    status: "In Progress",
-  },
-  {
-    id: 4,
-    title: "Contact Ball Basics",
-    description: "Enter the meditative practice of contact ball manipulation, where spheres become...",
-    thumbnail: "/placeholder.svg?height=200&width=300",
-    instructor: "Zen Master Ko",
-    duration: "4h 12m",
-    lessons: 12,
-    students: 1200,
-    rating: 4.8,
-    price: "Free",
-    level: "All Levels",
-    tags: ["Contact Ball", "Meditation", "Beginner"],
-    enrolled: true,
-    progress: 0, // Assuming 0 for a 'Not Started' example if needed, or adjust to match image
-    status: "Not Started",
-  },
+// Custom scrollbar styles
+const scrollbarStyles = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(31, 41, 55, 0.3);
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #a855f7;
+    border-radius: 6px;
+    box-shadow: 0 0 6px rgba(168, 85, 247, 0.4);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #c084fc;
+    box-shadow: 0 0 8px rgba(192, 132, 252, 0.6);
+  }
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 8px;
+  }
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: rgba(31, 41, 55, 0.3);
+    border-radius: 4px;
+  }
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #a855f7;
+    border-radius: 6px;
+    box-shadow: 0 0 6px rgba(168, 85, 247, 0.4);
+  }
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #c084fc;
+    box-shadow: 0 0 8px rgba(192, 132, 252, 0.6);
+  }
+`
+
+const categories = [
+  "All Courses",
+  "Poi",
+  "Fire Staff",
+  "Rope Dart",
+  "Contact Ball",
+  "Flowchakra"
 ]
 
-export default function MyLearningPage() {
-  const [filterStatus, setFilterStatus] = useState("all")
-  const [sortBy, setSortBy] = useState("recentlyAccessed")
+// Function to fetch enrolled courses for a specific user
+async function fetchEnrolledCourses(userId) {
+  try {
+    console.log('Fetching enrolled courses for user:', userId)
+    
+    // First, get all enrollments for the user
+    const { data: enrollments, error: enrollmentError } = await supabase
+      .from('enrollments')
+      .select('*')
+      .eq('user_id', userId)
 
-  const filteredCourses = enrolledCoursesData.filter((course) => {
-    if (filterStatus === "all") return true
-    return course.status === filterStatus
-  }).sort((a, b) => {
-    if (sortBy === "recentlyAccessed") {
-      // For now, let's just sort by title, as there's no actual access date
-      return a.title.localeCompare(b.title)
-    } else if (sortBy === "progress") {
-      return a.progress - b.progress
+    console.log('Enrollments data:', enrollments)
+    console.log('Enrollment error:', enrollmentError)
+
+    if (enrollmentError) {
+      console.error('Error fetching enrollments:', enrollmentError)
+      return []
     }
-    return 0
+
+    if (!enrollments || enrollments.length === 0) {
+      console.log('No enrollments found for user')
+      return []
+    }
+
+    // Get course IDs from enrollments
+    const courseIds = enrollments.map(e => e.course_id).filter(Boolean)
+    console.log('Course IDs:', courseIds)
+
+    if (courseIds.length === 0) {
+      console.log('No course IDs found')
+      return []
+    }
+
+    // Get course details
+    const { data: courses, error: coursesError } = await supabase
+      .from('courses')
+      .select('*')
+      .in('id', courseIds)
+
+    console.log('Courses data:', courses)
+    console.log('Courses error:', coursesError)
+
+    if (coursesError) {
+      console.error('Error fetching courses:', coursesError)
+      return []
+    }
+
+    // Create a map of courses by ID
+    const coursesMap = courses.reduce((acc, course) => {
+      acc[course.id] = course
+      return acc
+    }, {})
+
+    // Transform the data to match our component structure
+    const enrolledCourses = enrollments.map(enrollment => {
+      const course = coursesMap[enrollment.course_id]
+      
+      if (!course) {
+        console.log('Course not found for enrollment:', enrollment.course_id)
+        return null
+      }
+
+      // Convert duration from minutes to readable format
+      const durationMinutes = course.duration_minutes || 150
+      const hours = Math.floor(durationMinutes / 60)
+      const minutes = durationMinutes % 60
+      const duration = `${hours}h ${minutes}m`
+
+      // Calculate progress based on enrollment data
+      const progressPercentage = enrollment.progress_percentage || 0
+      const totalLessons = course.total_lessons || 12
+      const completedLessons = Math.round((progressPercentage / 100) * totalLessons)
+
+      return {
+        id: course.id,
+        title: course.title,
+        by: 'FlowSchool', // Default instructor name
+        duration: duration,
+        lessons: `${totalLessons} lessons`,
+        lastAccessed: enrollment.last_accessed_at ? formatLastAccessed(enrollment.last_accessed_at) : 'Never',
+        progress: progressPercentage,
+        level: course.level || 'Beginner',
+        rating: course.rating || 4.5,
+        image: course.thumbnail_url,
+        completed: enrollment.completed_at !== null,
+        tags: course.tags || []
+      }
+    }).filter(Boolean) // Remove null entries
+
+    console.log('Transformed enrolled courses:', enrolledCourses)
+    return enrolledCourses
+
+  } catch (error) {
+    console.error('Error in fetchEnrolledCourses:', error)
+    return []
+  }
+}
+
+// Function to format last accessed date
+function formatLastAccessed(dateString) {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffTime = Math.abs(now - date)
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (diffDays === 1) return '1 day ago'
+  if (diffDays < 7) return `${diffDays} days ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} week${Math.floor(diffDays / 7) > 1 ? 's' : ''} ago`
+  return `${Math.floor(diffDays / 30)} month${Math.floor(diffDays / 30) > 1 ? 's' : ''} ago`
+}
+
+// Function to calculate total hours from enrolled courses
+function calculateTotalHours(courses) {
+  let totalMinutes = 0
+  courses.forEach(course => {
+    const duration = course.duration
+    if (duration) {
+      const hours = duration.match(/(\d+)h/)
+      const minutes = duration.match(/(\d+)m/)
+      if (hours) totalMinutes += parseInt(hours[1]) * 60
+      if (minutes) totalMinutes += parseInt(minutes[1])
+    }
   })
+  
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  return `${hours}h ${minutes}m`
+}
 
-  const totalCourses = enrolledCoursesData.length
-  const inProgressCourses = enrolledCoursesData.filter(c => c.status === "In Progress").length
-  const completedCourses = enrolledCoursesData.filter(c => c.status === "Completed").length
-  const totalHours = enrolledCoursesData.reduce((sum, course) => {
-    const [hours, minutes] = course.duration.split('h ').map(parseFloat);
-    return sum + hours + (minutes || 0) / 60;
-  }, 0);
+class MyLearningPage extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      courses: [],
+      loading: true,
+      selectedCategory: "All Courses",
+      userId: null
+    }
+  }
 
-  const averageCompletion = totalCourses > 0 
-    ? enrolledCoursesData.reduce((sum, course) => sum + course.progress, 0) / totalCourses
-    : 0;
+  async componentDidMount() {
+    await this.getCurrentUser()
+  }
 
-  const sidebarToggle = (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="outline" className="bg-gray-900/80 backdrop-blur-sm border-gray-700 text-gray-100 hover:bg-gray-800 w-10 h-10 p-0 flex items-center justify-center">
-          <Menu className="h-5 w-5" />
-          <span className="sr-only">Open My Learning Sidebar</span>
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="left" className="w-64 p-0 bg-gray-900 border-gray-800">
-        {/* Place sidebar content here if/when needed */}
-        <div className="p-6">Sidebar content (filters, navigation, etc.)</div>
-      </SheetContent>
-    </Sheet>
-  )
+  async getCurrentUser() {
+    try {
+      console.log('Getting current user...')
+      const { data: { user }, error } = await supabase.auth.getUser()
+      console.log('User data:', user)
+      console.log('User error:', error)
+      
+      if (error) {
+        console.error('Error getting user:', error)
+        this.setState({ loading: false })
+        return
+      }
+      
+      if (user) {
+        console.log('User found, ID:', user.id)
+        this.setState({ userId: user.id })
+        await this.fetchUserEnrolledCourses(user.id)
+      } else {
+        console.log('No user found')
+        this.setState({ loading: false })
+      }
+    } catch (error) {
+      console.error('Error in getCurrentUser:', error)
+      this.setState({ loading: false })
+    }
+  }
+
+  async fetchUserEnrolledCourses(userId) {
+    try {
+      this.setState({ loading: true })
+      const enrolledCourses = await fetchEnrolledCourses(userId)
+      this.setState({ 
+        courses: enrolledCourses,
+        loading: false 
+      })
+    } catch (error) {
+      console.error('Error fetching enrolled courses:', error)
+      this.setState({ loading: false })
+    }
+  }
+
+  setSelectedCategory = (category) => {
+    this.setState({ selectedCategory: category })
+  }
+
+  render() {
+    const { courses, loading, selectedCategory } = this.state
+
+    if (loading) {
+      return (
+        <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading your enrolled courses...</p>
+          </div>
+        </div>
+      )
+    }
+
+  const filteredCourses = selectedCategory === "All Courses" 
+    ? courses 
+        : courses.filter(course => {
+            if (selectedCategory === "Flowchakra") {
+              return course.title.toLowerCase().includes("flowchakra") || 
+                     (course.tags && course.tags.some(tag => 
+                       tag.toLowerCase().includes("flowchakra")
+                     ))
+            }
+            return course.tags && course.tags.some(tag => 
+              tag.toLowerCase().includes(selectedCategory.toLowerCase())
+            )
+          })
+
+    const completedCourses = courses.filter(course => course.completed).length
+    const inProgressCourses = courses.filter(course => !course.completed).length
+    const totalHours = calculateTotalHours(courses)
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <SiteHeader sidebarToggle={sidebarToggle} />
-
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              My Learning Journey
-            </h1>
-            <p className="text-gray-400 mt-2">Track your progress and continue your flow arts education</p>
+    <div className="min-h-screen bg-gray-950 text-white flex flex-col">
+        <style dangerouslySetInnerHTML={{ __html: scrollbarStyles }} />
+      <SiteHeader />
+        
+        {/* Page Header */}
+        <div className="px-4 lg:px-8 py-6 lg:py-8 max-w-7xl mx-auto w-full">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-6">
+            <div className="flex-1">
+              <h1 className="text-3xl lg:text-4xl font-extrabold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                My Learning
+              </h1>
+            </div>
+            
+            {/* Filter Dropdown - Positioned on the right side of header */}
+            <div className="flex-shrink-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="bg-gradient-to-br from-gray-800/80 to-gray-700/80 border border-gray-600/50 text-white hover:bg-gray-700/80 hover:text-purple-300 transition-all duration-300">
+                    <span className="mr-2">Filter: {selectedCategory}</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-gray-900/95 border border-gray-700/50 backdrop-blur-sm">
+                  {categories.map((category) => (
+                    <DropdownMenuItem
+                      key={category}
+                      className={`cursor-pointer transition-all duration-200 ${
+                        selectedCategory === category
+                          ? "bg-purple-600/20 text-purple-300 border border-purple-500/30"
+                          : "text-gray-300 hover:text-purple-300 hover:bg-gray-800/50"
+                      }`}
+                      onClick={() => this.setSelectedCategory(category)}
+                    >
+                      {category}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-          <Link href="/">
-            <Button variant="secondary" className="bg-gray-800 text-white hover:bg-gray-700">
-              Back to Courses
-            </Button>
-          </Link>
         </div>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <Card className="bg-blue-600/20 border-blue-600/50 flex items-center p-4 gap-4">
-            <BookOpen className="h-8 w-8 text-blue-400" />
-            <div>
-              <div className="text-3xl font-bold text-blue-300">{totalCourses}</div>
-              <div className="text-blue-400">Total Courses</div>
-            </div>
-          </Card>
-          <Card className="bg-orange-600/20 border-orange-600/50 flex items-center p-4 gap-4">
-            <TrendingUp className="h-8 w-8 text-orange-400" />
-            <div>
-              <div className="text-3xl font-bold text-orange-300">{inProgressCourses}</div>
-              <div className="text-orange-400">In Progress</div>
-            </div>
-          </Card>
-          <Card className="bg-green-600/20 border-green-600/50 flex items-center p-4 gap-4">
-            <CheckCircle className="h-8 w-8 text-green-400" />
-            <div>
-              <div className="text-3xl font-bold text-green-300">{completedCourses}</div>
-              <div className="text-green-400">Completed</div>
-            </div>
-          </Card>
-          <Card className="bg-purple-600/20 border-purple-600/50 flex items-center p-4 gap-4">
-            <Clock className="h-8 w-8 text-purple-400" />
-            <div>
-              <div className="text-3xl font-bold text-purple-300">{totalHours.toFixed(0)}h</div>
-              <div className="text-purple-400">Total Hours</div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Overall Progress */}
-        <Card className="bg-gray-900 border-gray-800 p-6 mb-10">
-          <div className="flex items-center gap-3 text-purple-400 mb-4">
-            <TrendingUp className="h-6 w-6" />
-            <h3 className="text-xl font-semibold">Overall Progress</h3>
-          </div>
-          <div className="relative pt-1">
-            <div className="flex mb-2 items-center justify-between">
-              <div>
-                <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-purple-600 bg-purple-200/20">
-                  Average Completion
-                </span>
+        
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 px-4 lg:px-8 pb-6 lg:pb-8 max-w-7xl mx-auto flex-1">
+          {/* Sidebar with Progress Overview */}
+          <aside className="w-full lg:w-80 flex-shrink-0 mb-6 lg:mb-0 lg:sticky lg:top-24 lg:h-fit">
+            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/80 rounded-xl lg:rounded-3xl p-4 lg:p-6 border border-gray-700/60 shadow-2xl backdrop-blur-sm">
+              <h2 className="text-sm lg:text-base font-bold mb-3 lg:mb-4 text-white flex items-center gap-2">
+                <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+                Progress Overview
+              </h2>
+              <div className="flex flex-col gap-2 lg:gap-3 text-gray-300 text-xs lg:text-sm">
+                <div className="flex items-center justify-between p-2 lg:p-3 rounded-lg bg-gray-800/50">
+                  <span className="text-gray-400">Courses Completed</span>
+                  <span className="font-semibold text-green-400">{completedCourses}</span>
+                </div>
+                <div className="flex items-center justify-between p-2 lg:p-3 rounded-lg bg-gray-800/50">
+                  <span className="text-gray-400">In Progress</span>
+                  <span className="font-semibold text-blue-400">{inProgressCourses}</span>
               </div>
-              <div className="text-right">
-                <span className="text-sm font-semibold inline-block text-purple-400">
-                  {averageCompletion.toFixed(0)}%
-                </span>
+                <div className="flex items-center justify-between p-2 lg:p-3 rounded-lg bg-gray-800/50">
+                  <span className="text-gray-400">Total Hours</span>
+                  <span className="font-semibold text-purple-400">{totalHours}</span>
               </div>
-            </div>
-            <Progress value={averageCompletion} className="w-full bg-gray-700 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-value]:rounded-lg [&::-webkit-progress-value]:bg-gradient-to-r [&::-webkit-progress-value]:from-purple-500 [&::-webkit-progress-value]:to-pink-500" />
-            <div className="flex justify-between text-sm text-gray-500 mt-2">
-              <span>0 Not Started</span>
-              <span>{inProgressCourses} In Progress</span>
-              <span>{completedCourses} Completed</span>
-            </div>
+              </div>
           </div>
-        </Card>
-
-        {/* Course Filters and Sort */}
-        <div className="flex items-center gap-4 mb-6">
-          <Filter className="h-5 w-5 text-gray-400" />
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-40 bg-gray-800 border-gray-700 text-white">
-              <SelectValue placeholder="All Courses" />
-            </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-gray-700">
-              <SelectItem value="all">All Courses</SelectItem>
-              <SelectItem value="In Progress">In Progress</SelectItem>
-              <SelectItem value="Completed">Completed</SelectItem>
-              <SelectItem value="Not Started">Not Started</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-40 bg-gray-800 border-gray-700 text-white">
-              <SelectValue placeholder="Recently Accessed" />
-            </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-gray-700">
-              <SelectItem value="recentlyAccessed">Recently Accessed</SelectItem>
-              <SelectItem value="progress">Progress</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Enrolled Course Grid */}
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {filteredCourses.map((course, index) => (
-            <motion.div
-              key={course.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
-              <Card className="bg-gray-900 border-gray-800 hover:border-purple-500/50 transition-all duration-300 group overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="relative overflow-hidden">
-                    <img
-                      src={course.thumbnail || "/placeholder.svg"}
-                      alt={course.title}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent" />
-                    <div className="absolute top-4 left-4">
-                      <Badge
-                        variant={course.status === "In Progress" ? "default" : course.status === "Completed" ? "secondary" : "outline"}
-                        className={course.status === "In Progress" ? "bg-orange-600 text-white" : course.status === "Completed" ? "bg-green-600 text-white" : "border-gray-600 text-gray-300"}
-                      >
-                        {course.status}
-                      </Badge>
-                    </div>
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-300">
-                        <Clock className="h-4 w-4" />
-                        <span>{course.duration}</span>
-                        <BookCheck className="h-4 w-4 ml-2" />
-                        <span>{course.lessons} lessons</span>
-                        <div className="flex items-center ml-auto">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="ml-1">{course.rating}</span>
+        </aside>
+          
+        {/* Main Content */}
+        <main className="flex-1">
+            {/* Courses Container */}
+            <div className="h-[calc(100vh-320px)] lg:h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar pr-2">
+              {filteredCourses.length === 0 ? (
+                <div className="text-center py-8 lg:py-12">
+                  <div className="w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-500/30">
+                    <Play className="w-10 h-10 lg:w-12 lg:h-12 text-purple-400" />
+                  </div>
+                  <h3 className="text-lg lg:text-xl font-semibold text-white mb-2">No enrolled courses found</h3>
+                  <p className="text-gray-400 mb-6 text-sm lg:text-base">
+                    {this.state.userId 
+                      ? "You haven't enrolled in any courses yet." 
+                      : "Please log in to view your enrolled courses."
+                    }
+                  </p>
+                  <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg">
+                    {this.state.userId ? "Browse Courses" : "Log In"}
+                  </Button>
+            </div>
+          ) : (
+                <div className="flex flex-col gap-4 lg:gap-6">
+                  {filteredCourses.map((course) => (
+                    <div
+                      key={course.id}
+                      className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-gray-700/50 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-6 shadow-xl backdrop-blur-sm hover:border-purple-500/30 transition-all duration-300"
+                    >
+                      <div className="flex items-start lg:items-center gap-4 lg:gap-6 flex-1">
+                        <div className="hidden lg:flex items-center justify-center w-20 h-20 lg:w-28 lg:h-28 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg lg:rounded-xl border border-purple-500/30">
+                          <Play className="w-8 h-8 lg:w-10 lg:h-10 text-purple-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h2 className="text-lg lg:text-2xl font-bold text-white mb-2 hover:text-purple-400 transition-colors truncate">
+                            {course.title}
+                          </h2>
+                          <div className="flex flex-wrap items-center gap-1 lg:gap-2 text-gray-400 mb-3 text-xs lg:text-sm">
+                            <span className="text-purple-300 font-medium">by {course.by}</span>
+                            <span className="text-gray-500">•</span>
+                            <span>{course.duration}</span>
+                            <span className="text-gray-500">•</span>
+                            <span className="text-blue-300">{course.lessons}</span>
+                          </div>
+                          <div className="flex items-center gap-2 lg:gap-3 mb-3 flex-wrap">
+                            <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-2 py-1 text-xs font-semibold rounded-full shadow-lg">
+                              {course.level}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
+                      <div className="flex flex-col gap-2 lg:gap-3 min-w-[140px] lg:min-w-[180px]">
+                        <Button 
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-2 lg:py-3 px-4 lg:px-6 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 text-sm lg:text-base"
+                          onClick={() => window.location.href = `/courses/${course.id}`}
+                        >
+                          Continue Learning
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold mb-2 group-hover:text-purple-400 transition-colors">
-                    {course.title}
-                  </h3>
-                  <p className="text-gray-400 text-sm mb-3 line-clamp-2">{course.description}</p>
-
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="text-sm text-gray-500">Progress: {course.progress}%</div>
-                    <Progress value={course.progress} className="w-2/3 bg-gray-700 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-value]:rounded-lg [&::-webkit-progress-value]:bg-gradient-to-r [&::-webkit-progress-value]:from-purple-500 [&::-webkit-progress-value]:to-pink-500" />
-                  </div>
-
-                  <Button
-                    className={`w-full ${course.status === "Completed" ? "bg-green-600 hover:bg-green-700" : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"}`}
-                  >
-                    {course.status === "Completed" ? (
-                      <>Completed</>
-                    ) : (
-                      <Link href={`/courses/${course.id}`} className="w-full flex items-center justify-center">
-                        Continue Learning
-                      </Link>
-                    )}
-                  </Button>
+                  ))}
                 </div>
-              </Card>
-            </motion.div>
-          ))}
-
-          {filteredCourses.length === 0 && (
-            <div className="text-center py-12 col-span-full">
-              <div className="text-gray-400 text-lg">No enrolled courses found matching your criteria</div>
-              <p className="text-gray-500 mt-2">Try adjusting your filter settings</p>
+              )}
             </div>
-          )}
-        </motion.div>
+        </main>
       </div>
     </div>
-  )
-} 
+    )
+  }
+}
+
+export default MyLearningPage
