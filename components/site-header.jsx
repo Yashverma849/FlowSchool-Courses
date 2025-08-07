@@ -1,9 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Search, BellRing, Sparkle } from "lucide-react"
+import { BellRing } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
@@ -12,7 +11,6 @@ import AuthOverlay from "@/app/auth-overlay";
 import md5 from "md5";
 
 export default function SiteHeader({ sidebarToggle }) {
-  const [searchTerm, setSearchTerm] = useState("") // State for global search
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authOpen, setAuthOpen] = useState(false);
@@ -65,7 +63,69 @@ export default function SiteHeader({ sidebarToggle }) {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
           <div className="flex flex-col items-start gap-2">
             <Link href="/" className="flex items-center gap-3 group">
-              <Sparkle className="h-6 w-6 text-purple-400 group-hover:scale-110 transition-transform" />
+              <div className="w-8 h-8 animate-spin-slow">
+                <svg 
+                  width="32" 
+                  height="32" 
+                  viewBox="0 0 200 200" 
+                  className="w-full h-full"
+                >
+                  {/* Outer purple petals */}
+                  <g className="opacity-90">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <path
+                        key={`outer-${i}`}
+                        d={`M 100 100 L ${100 + 80 * Math.cos(i * Math.PI / 6)} ${100 + 80 * Math.sin(i * Math.PI / 6)} 
+                            Q ${100 + 70 * Math.cos((i + 0.5) * Math.PI / 6)} ${100 + 70 * Math.sin((i + 0.5) * Math.PI / 6)} 
+                            ${100 + 60 * Math.cos((i + 1) * Math.PI / 6)} ${100 + 60 * Math.sin((i + 1) * Math.PI / 6)} Z`}
+                        fill={`hsl(${270 + i * 5}, 70%, ${60 + i * 2}%)`}
+                        stroke={`hsl(${270 + i * 5}, 80%, ${50 + i * 2}%)`}
+                        strokeWidth="1"
+                      />
+                    ))}
+                  </g>
+                  
+                  {/* Middle teal petals */}
+                  <g className="opacity-80">
+                    {Array.from({ length: 16 }).map((_, i) => (
+                      <path
+                        key={`middle-${i}`}
+                        d={`M 100 100 L ${100 + 50 * Math.cos(i * Math.PI / 8)} ${100 + 50 * Math.sin(i * Math.PI / 8)} 
+                            Q ${100 + 40 * Math.cos((i + 0.5) * Math.PI / 8)} ${100 + 40 * Math.sin((i + 0.5) * Math.PI / 8)} 
+                            ${100 + 30 * Math.cos((i + 1) * Math.PI / 8)} ${100 + 30 * Math.sin((i + 1) * Math.PI / 8)} Z`}
+                        fill={`hsl(${180 + i * 8}, 70%, ${50 + i * 3}%)`}
+                        stroke={`hsl(${180 + i * 8}, 80%, ${40 + i * 3}%)`}
+                        strokeWidth="1"
+                      />
+                    ))}
+                  </g>
+                  
+                  {/* Inner blue petals */}
+                  <g className="opacity-70">
+                    {Array.from({ length: 20 }).map((_, i) => (
+                      <path
+                        key={`inner-${i}`}
+                        d={`M 100 100 L ${100 + 25 * Math.cos(i * Math.PI / 10)} ${100 + 25 * Math.sin(i * Math.PI / 10)} 
+                            Q ${100 + 20 * Math.cos((i + 0.5) * Math.PI / 10)} ${100 + 20 * Math.sin((i + 0.5) * Math.PI / 10)} 
+                            ${100 + 15 * Math.cos((i + 1) * Math.PI / 10)} ${100 + 15 * Math.sin((i + 1) * Math.PI / 10)} Z`}
+                        fill={`hsl(${200 + i * 10}, 80%, ${60 + i * 2}%)`}
+                        stroke={`hsl(${200 + i * 10}, 90%, ${50 + i * 2}%)`}
+                        strokeWidth="1"
+                      />
+                    ))}
+                  </g>
+                  
+                  {/* Center spiral */}
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="8"
+                    fill="hsl(180, 90%, 60%)"
+                    stroke="hsl(180, 100%, 50%)"
+                    strokeWidth="2"
+                  />
+                </svg>
+              </div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent group-hover:underline">
                 FlowSchool
               </h1>
@@ -74,17 +134,6 @@ export default function SiteHeader({ sidebarToggle }) {
             {sidebarToggle && (
               <div className="block lg:hidden mt-2">{sidebarToggle}</div>
             )}
-          </div>
-
-          {/* Search */}
-          <div className="relative flex-1 lg:max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search courses..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-gray-800 border-gray-700 text-white placeholder-gray-400"
-            />
           </div>
 
           <div className="flex items-center gap-4">

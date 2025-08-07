@@ -2,10 +2,9 @@
 
 import { useEffect, useState, useRef } from "react"
 import Link from "next/link"
-import { User, Bell, Settings as SettingsIcon, Shield, Lock, Save, ArrowLeft, Mail, Smartphone, Palette, Volume2, Eye, ScrollText, Trash2 } from "lucide-react"
+import { User, Settings as SettingsIcon, Shield, Lock, Save, ArrowLeft, Palette, Volume2, Eye, ScrollText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Switch } from "@/components/ui/switch"
@@ -24,18 +23,9 @@ export default function SettingsPage() {
     email: "",
     location: "",
     website: "",
-    bio: "",
     avatar: "",
   });
   const [activeTab, setActiveTab] = useState("profile");
-  const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    courseUpdates: true,
-    newCourses: false,
-    communityMessages: true,
-    weeklyDigest: true,
-  });
   const [appPreferences, setAppPreferences] = useState({
     theme: "system",
     language: "english",
@@ -67,7 +57,6 @@ export default function SettingsPage() {
           email: data.user.email || "",
           location: data.user.user_metadata?.location || "",
           website: data.user.user_metadata?.website || "",
-          bio: data.user.user_metadata?.bio || "",
           avatar: data.user.user_metadata?.avatar_url || "/placeholder-user.jpg",
         });
       }
@@ -83,13 +72,6 @@ export default function SettingsPage() {
     const { id, value } = e.target;
     setProfile((prevProfile) => ({ ...prevProfile, [id]: value }));
   };
-
-  const handleNotificationChange = (id) => {
-    setNotificationSettings((prevSettings) => ({
-      ...prevSettings,
-      [id]: !prevSettings[id],
-    }))
-  }
 
   const handleAppPreferencesChange = (id, value) => {
     setAppPreferences((prevPreferences) => ({
@@ -150,7 +132,6 @@ export default function SettingsPage() {
         full_name: profile.fullName,
         location: profile.location,
         website: profile.website,
-        bio: profile.bio,
         avatar_url: profile.avatar,
       }
     });
@@ -177,11 +158,6 @@ export default function SettingsPage() {
     await supabase.auth.updateUser({ data: { avatar_url: "/placeholder-user.jpg" } });
   };
 
-  const handleSaveNotifications = () => {
-    console.log("Saving notification settings:", notificationSettings)
-    // Implement save notification settings logic here
-  }
-
   const handleSaveAppPreferences = () => {
     console.log("Saving app preferences:", appPreferences)
     // Implement save app preferences logic here
@@ -195,11 +171,6 @@ export default function SettingsPage() {
   const handleUpdatePassword = () => {
     console.log("Updating password:", passwordFields)
     // Implement password update logic here
-  }
-
-  const handleDeleteAccount = () => {
-    console.log("Deleting account...")
-    // Implement account deletion logic here
   }
 
   const sidebarToggle = (
@@ -247,13 +218,6 @@ export default function SettingsPage() {
               onClick={() => setActiveTab("profile")}
             >
               <User className="h-4 w-4" /> Profile
-            </Button>
-            <Button
-              variant="ghost"
-              className={`w-full justify-start text-left gap-2 ${activeTab === "notifications" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
-              onClick={() => setActiveTab("notifications")}
-            >
-              <Bell className="h-4 w-4" /> Notifications
             </Button>
             <Button
               variant="ghost"
@@ -330,110 +294,8 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="mb-8">
-                <label htmlFor="bio" className="block text-sm font-medium text-gray-400 mb-1">Bio</label>
-                <Textarea id="bio" value={profile.bio} onChange={handleChange} rows={4} className="bg-gray-800 border-gray-700 text-white" />
-              </div>
-
               <Button onClick={handleSave} className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
                 <Save className="h-4 w-4 mr-2" /> Save Changes
-              </Button>
-            </>
-          )}
-
-          {activeTab === "notifications" && (
-            <>
-              <div className="flex justify-end mb-4">
-                <Link href="/">
-                  <Button variant="secondary" className="bg-gray-800 text-white hover:bg-gray-700">
-                    Back to Courses
-                  </Button>
-                </Link>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-200 mb-6">Notification Preferences</h3>
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <Mail className="h-6 w-6 text-gray-400" />
-                    <div>
-                      <h4 className="text-base font-medium text-gray-200">Email Notifications</h4>
-                      <p className="text-sm text-gray-400">Receive notifications via email</p>
-                    </div>
-                  </div>
-                  <Switch
-                    checked={notificationSettings.emailNotifications}
-                    onCheckedChange={() => handleNotificationChange("emailNotifications")}
-                    id="emailNotifications"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <Smartphone className="h-6 w-6 text-gray-400" />
-                    <div>
-                      <h4 className="text-base font-medium text-gray-200">Push Notifications</h4>
-                      <p className="text-sm text-gray-400">Receive push notifications on your device</p>
-                    </div>
-                  </div>
-                  <Switch
-                    checked={notificationSettings.pushNotifications}
-                    onCheckedChange={() => handleNotificationChange("pushNotifications")}
-                    id="pushNotifications"
-                  />
-                </div>
-
-                <div className="h-px bg-gray-800 my-6" /> {/* Divider */}
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-base font-medium text-gray-200">Course Updates</h4>
-                    <p className="text-sm text-gray-400">New lessons and course announcements</p>
-                  </div>
-                  <Switch
-                    checked={notificationSettings.courseUpdates}
-                    onCheckedChange={() => handleNotificationChange("courseUpdates")}
-                    id="courseUpdates"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-base font-medium text-gray-200">New Courses</h4>
-                    <p className="text-sm text-gray-400">Notifications about new course releases</p>
-                  </div>
-                  <Switch
-                    checked={notificationSettings.newCourses}
-                    onCheckedChange={() => handleNotificationChange("newCourses")}
-                    id="newCourses"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-base font-medium text-gray-200">Community Messages</h4>
-                    <p className="text-sm text-gray-400">Messages and replies in course discussions</p>
-                  </div>
-                  <Switch
-                    checked={notificationSettings.communityMessages}
-                    onCheckedChange={() => handleNotificationChange("communityMessages")}
-                    id="communityMessages"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-base font-medium text-gray-200">Weekly Digest</h4>
-                    <p className="text-sm text-gray-400">Weekly summary of your learning progress</p>
-                  </div>
-                  <Switch
-                    checked={notificationSettings.weeklyDigest}
-                    onCheckedChange={() => handleNotificationChange("weeklyDigest")}
-                    id="weeklyDigest"
-                  />
-                </div>
-              </div>
-              <Button onClick={handleSaveNotifications} className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 mt-8">
-                <Save className="h-4 w-4 mr-2" /> Save Preferences
               </Button>
             </>
           )}
@@ -631,16 +493,6 @@ export default function SettingsPage() {
               </div>
               <Button onClick={handleUpdatePassword} className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 mb-12">
                 Update Password
-              </Button>
-
-              <h3 className="text-xl font-semibold text-red-400 mb-4 flex items-center gap-2">
-                <Trash2 className="h-5 w-5" /> Delete Account
-              </h3>
-              <p className="text-gray-400 mb-6">
-                Permanently delete your account and all associated data. This action cannot be undone.
-              </p>
-              <Button onClick={handleDeleteAccount} variant="destructive" className="bg-red-600 hover:bg-red-700">
-                <Trash2 className="h-4 w-4 mr-2" /> Delete Account
               </Button>
             </>
           )}

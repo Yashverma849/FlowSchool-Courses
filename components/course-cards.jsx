@@ -1,10 +1,11 @@
 "use client"
 
-import { Clock, Users, Star, Play } from "lucide-react"
+import { Clock, Users, Star, Play, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
@@ -13,7 +14,7 @@ import AuthOverlay from "@/app/auth-overlay";
 import { useToast } from "@/hooks/use-toast";
 import { useEnrollment } from "@/hooks/use-enrollment";
 
-export function CourseCards({ courses }) {
+export function CourseCards({ courses, searchTerm, setSearchTerm }) {
   const router = useRouter();
   const [authOpen, setAuthOpen] = useState(false);
   const [loading, setLoading] = useState({});
@@ -166,12 +167,9 @@ export function CourseCards({ courses }) {
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
-                Flow Arts Courses
+              <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+                Start Your Own Flow Journey Today!
               </h1>
-              <p className="text-gray-400 text-sm lg:text-base">
-                Discover the art of movement, rhythm, and creative expression through our curated collection of courses
-              </p>
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <p className="text-sm text-gray-500">
@@ -183,6 +181,20 @@ export function CourseCards({ courses }) {
                   All Courses
                 </Badge>
               </div>
+            </div>
+          </div>
+          <div className="flex justify-between items-center mt-4">
+            <p className="text-base lg:text-lg text-gray-300 font-medium italic">
+              Where movement becomes art, and rhythm flows through your soul ✨
+            </p>
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search courses..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-gray-800 border-gray-700 text-white placeholder-gray-400"
+              />
             </div>
           </div>
         </div>

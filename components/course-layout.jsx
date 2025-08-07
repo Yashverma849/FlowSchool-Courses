@@ -227,12 +227,8 @@ export default function CourseLayout() {
           />
         </div>
         {/* Main Content */}
-        <div className="flex-1 lg:ml-64 lg:pt-6 p-8 overflow-y-auto">
-          <div className="mb-8">
-            {/* Removed duplicate heading, description, and filter UI. Now handled by CourseCards. */}
-          </div>
-
-          <CourseCards courses={filteredCourses} />
+        <div className="flex-1 lg:ml-64 p-4 pt-2 overflow-y-auto">
+          <CourseCards courses={filteredCourses} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </div>
       </div>
     </div>
