@@ -113,6 +113,18 @@ export function useEnrollment() {
     }
   };
 
+  // Count total enrolled courses for the current user
+  const countUserEnrollments = async () => {
+    if (!user) return 0;
+    
+    try {
+      return await EnrollmentService.countUserEnrollments(user.id);
+    } catch (error) {
+      console.error('Error counting user enrollments:', error);
+      return 0;
+    }
+  };
+
   return {
     user,
     enrollments,
@@ -123,5 +135,6 @@ export function useEnrollment() {
     updateProgress,
     getUserEnrollments,
     checkMultipleEnrollments,
+    countUserEnrollments,
   };
 } 

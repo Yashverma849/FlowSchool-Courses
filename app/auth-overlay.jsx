@@ -8,8 +8,11 @@ import { FaGithub, FaFacebook } from "react-icons/fa";
 import { Sparkle } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
+import { getPostAuthRedirectPath } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 export default function AuthOverlay({ open, onOpenChange }) {
+  const router = useRouter();
   const [mode, setMode] = useState("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -31,7 +34,7 @@ export default function AuthOverlay({ open, onOpenChange }) {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: loginEmail,
       password: loginPassword,
     });
@@ -42,7 +45,12 @@ export default function AuthOverlay({ open, onOpenChange }) {
       onOpenChange(false); // Close overlay
       setLoginEmail("");
       setLoginPassword("");
-      window.location.reload(); // Reload page after login
+      
+      // Get redirect path based on enrollment count
+      if (data.user) {
+        const redirectPath = await getPostAuthRedirectPath(data.user.id);
+        router.push(redirectPath);
+      }
     }
   }
 
@@ -78,7 +86,12 @@ export default function AuthOverlay({ open, onOpenChange }) {
       setSignupPassword("");
       setSignupConfirm("");
       setSignupPhone("");
-      window.location.reload(); // Reload page after signup
+      
+      // Get redirect path based on enrollment count
+      if (data.user) {
+        const redirectPath = await getPostAuthRedirectPath(data.user.id);
+        router.push(redirectPath);
+      }
     }
   }
 
