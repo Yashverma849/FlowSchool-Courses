@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import Link from "next/link"
-import { User, Settings as SettingsIcon, Shield, Lock, Save, ArrowLeft, Palette, Volume2, Eye, ScrollText } from "lucide-react"
+import { User, Lock, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -13,7 +13,8 @@ import SiteHeader from "@/components/site-header"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient";
-import { Card, CardHeader, CardTitle, CardContent, Separator } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 export default function SettingsPage() {
   const [user, setUser] = useState(null);
@@ -25,20 +26,20 @@ export default function SettingsPage() {
     website: "",
     avatar: "",
   });
-  const [activeTab, setActiveTab] = useState("profile");
-  const [appPreferences, setAppPreferences] = useState({
-    theme: "system",
-    language: "english",
-    timezone: "pacific_time",
-    videoQuality: "auto",
-    autoplayVideos: true,
-  });
-  const [privacySettings, setPrivacySettings] = useState({
-    profileVisibility: "public",
-    showLearningProgress: true,
-    showCertificates: true,
-    allowDirectMessages: true,
-  });
+  // const [activeTab, setActiveTab] = useState("profile");
+  // const [appPreferences, setAppPreferences] = useState({
+  //   theme: "system",
+  //   language: "english",
+  //   timezone: "pacific_time",
+  //   videoQuality: "auto",
+  //   autoplayVideos: true,
+  // });
+  // const [privacySettings, setPrivacySettings] = useState({
+  //   profileVisibility: "public",
+  //   showLearningProgress: true,
+  //   showCertificates: true,
+  //   allowDirectMessages: true,
+  // });
   const [passwordFields, setPasswordFields] = useState({
     currentPassword: "",
     newPassword: "",
@@ -46,6 +47,7 @@ export default function SettingsPage() {
   });
   const fileInputRef = useRef();
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [passwordUpdating, setPasswordUpdating] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -73,19 +75,19 @@ export default function SettingsPage() {
     setProfile((prevProfile) => ({ ...prevProfile, [id]: value }));
   };
 
-  const handleAppPreferencesChange = (id, value) => {
-    setAppPreferences((prevPreferences) => ({
-      ...prevPreferences,
-      [id]: value,
-    }))
-  }
+  // const handleAppPreferencesChange = (id, value) => {
+  //   setAppPreferences((prevPreferences) => ({
+  //     ...prevPreferences,
+  //     [id]: value,
+  //   }))
+  // }
 
-  const handlePrivacyChange = (id, value) => {
-    setPrivacySettings((prevSettings) => ({
-      ...prevSettings,
-      [id]: value,
-    }))
-  }
+  // const handlePrivacyChange = (id, value) => {
+  //   setPrivacySettings((prevSettings) => ({
+  //     ...prevSettings,
+  //     [id]: value,
+  //   }))
+  // }
 
   const handlePasswordChange = (e) => {
     const { id, value } = e.target
@@ -158,19 +160,73 @@ export default function SettingsPage() {
     await supabase.auth.updateUser({ data: { avatar_url: "/placeholder-user.jpg" } });
   };
 
-  const handleSaveAppPreferences = () => {
-    console.log("Saving app preferences:", appPreferences)
-    // Implement save app preferences logic here
-  }
+  // const handleSaveAppPreferences = () => {
+  //   console.log("Saving app preferences:", appPreferences)
+  //   // Implement save app preferences logic here
+  // }
 
-  const handleSavePrivacySettings = () => {
-    console.log("Saving privacy settings:", privacySettings)
-    // Implement save privacy settings logic here
-  }
+  // const handleSavePrivacySettings = () => {
+  //   console.log("Saving privacy settings:", privacySettings)
+  //   // Implement save privacy settings logic here
+  // }
 
-  const handleUpdatePassword = () => {
-    console.log("Updating password:", passwordFields)
-    // Implement password update logic here
+  const handleUpdatePassword = async () => {
+    // Validate password fields
+    if (!passwordFields.currentPassword || !passwordFields.newPassword || !passwordFields.confirmNewPassword) {
+      alert("Please fill in all password fields");
+      return;
+    }
+
+    if (passwordFields.newPassword !== passwordFields.confirmNewPassword) {
+      alert("New password and confirm password do not match");
+      return;
+    }
+
+    if (passwordFields.newPassword.length < 6) {
+      alert("New password must be at least 6 characters long");
+      return;
+    }
+
+    setPasswordUpdating(true);
+
+    try {
+      // First, verify the current password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: passwordFields.currentPassword,
+      });
+
+      if (signInError) {
+        alert("Current password is incorrect");
+        setPasswordUpdating(false);
+        return;
+      }
+
+      // Update the password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: passwordFields.newPassword,
+      });
+
+      if (updateError) {
+        alert(`Error updating password: ${updateError.message}`);
+        setPasswordUpdating(false);
+        return;
+      }
+
+      // Clear the password fields
+      setPasswordFields({
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+      });
+
+      alert("Password updated successfully!");
+    } catch (error) {
+      console.error("Error updating password:", error);
+      alert("An error occurred while updating the password. Please try again.");
+    } finally {
+      setPasswordUpdating(false);
+    }
   }
 
   const sidebarToggle = (
@@ -192,9 +248,9 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
       <SiteHeader sidebarToggle={sidebarToggle} />
 
-      <div className="container mx-auto px-4 py-8 flex flex-1 gap-8">
+      <div className="container mx-auto px-4 py-8">
         {/* Settings Header */}
-        <div className="flex items-center justify-between w-full lg:hidden mb-6">
+        <div className="flex items-center justify-between w-full mb-6">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
               Settings
@@ -208,45 +264,9 @@ export default function SettingsPage() {
           </Link>
         </div>
 
-        {/* Sidebar Navigation */}
-        <div className="w-64 flex-shrink-0 bg-gray-900 border border-gray-800 rounded-lg p-6 hidden lg:block">
-          <h2 className="text-xl font-semibold mb-6">Settings</h2>
-          <div className="space-y-2">
-            <Button
-              variant="ghost"
-              className={`w-full justify-start text-left gap-2 ${activeTab === "profile" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
-              onClick={() => setActiveTab("profile")}
-            >
-              <User className="h-4 w-4" /> Profile
-            </Button>
-            <Button
-              variant="ghost"
-              className={`w-full justify-start text-left gap-2 ${activeTab === "preferences" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
-              onClick={() => setActiveTab("preferences")}
-            >
-              <SettingsIcon className="h-4 w-4" /> Preferences
-            </Button>
-            <Button
-              variant="ghost"
-              className={`w-full justify-start text-left gap-2 ${activeTab === "privacy" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
-              onClick={() => setActiveTab("privacy")}
-            >
-              <Shield className="h-4 w-4" /> Privacy
-            </Button>
-            <Button
-              variant="ghost"
-              className={`w-full justify-start text-left gap-2 ${activeTab === "account" ? "bg-purple-600/30 text-purple-300" : "text-gray-300 hover:bg-gray-800"}`}
-              onClick={() => setActiveTab("account")}
-            >
-              <Lock className="h-4 w-4" /> Account
-            </Button>
-          </div>
-        </div>
-
         {/* Main Content Area */}
-        <div className="flex-1 bg-gray-900 border border-gray-800 rounded-lg p-6">
-          {activeTab === "profile" && (
-            <>
+        <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+          <>
               <div className="flex justify-end mb-4">
                 <Link href="/">
                   <Button variant="secondary" className="bg-gray-800 text-white hover:bg-gray-700">
@@ -294,13 +314,47 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <Button onClick={handleSave} className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+              <Button onClick={handleSave} className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 mb-12">
                 <Save className="h-4 w-4 mr-2" /> Save Changes
               </Button>
-            </>
-          )}
 
-          {activeTab === "preferences" && (
+              {/* Account Security Section */}
+              <Separator className="bg-gray-800 my-8" />
+              
+              <h3 className="text-xl font-semibold text-gray-200 mb-6 flex items-center gap-2">
+                <Lock className="h-5 w-5" /> Account Security
+              </h3>
+              <div className="grid grid-cols-1 gap-6 mb-8">
+                <div>
+                  <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-400 mb-1">Current Password</label>
+                  <Input id="currentPassword" type="password" value={passwordFields.currentPassword} onChange={handlePasswordChange} className="bg-gray-800 border-gray-700 text-white" />
+                </div>
+                <div>
+                  <label htmlFor="newPassword" className="block text-sm font-medium text-gray-400 mb-1">New Password</label>
+                  <Input id="newPassword" type="password" value={passwordFields.newPassword} onChange={handlePasswordChange} className="bg-gray-800 border-gray-700 text-white" />
+                </div>
+                <div>
+                  <label htmlFor="confirmNewPassword" className="block text-sm font-medium text-gray-400 mb-1">Confirm New Password</label>
+                  <Input id="confirmNewPassword" type="password" value={passwordFields.confirmNewPassword} onChange={handlePasswordChange} className="bg-gray-800 border-gray-700 text-white" />
+                </div>
+              </div>
+              <Button 
+                onClick={handleUpdatePassword} 
+                disabled={passwordUpdating}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {passwordUpdating ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                    Updating Password...
+                  </>
+                ) : (
+                  "Update Password"
+                )}
+              </Button>
+          </>
+
+          {/* {activeTab === "preferences" && (
             <>
               <div className="flex justify-end mb-4">
                 <Link href="/">
@@ -387,9 +441,9 @@ export default function SettingsPage() {
                 <Save className="h-4 w-4 mr-2" /> Save Preferences
               </Button>
             </>
-          )}
+          )} */}
 
-          {activeTab === "privacy" && (
+          {/* {activeTab === "privacy" && (
             <>
               <div className="flex justify-end mb-4">
                 <Link href="/">
@@ -463,9 +517,9 @@ export default function SettingsPage() {
                 <Save className="h-4 w-4 mr-2" /> Save Privacy Settings
               </Button>
             </>
-          )}
+          )} */}
 
-          {activeTab === "account" && (
+          {/* {activeTab === "account" && (
             <>
               <div className="flex justify-end mb-4">
                 <Link href="/">
@@ -495,7 +549,7 @@ export default function SettingsPage() {
                 Update Password
               </Button>
             </>
-          )}
+          )} */}
         </div>
       </div>
     </div>

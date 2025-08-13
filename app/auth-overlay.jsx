@@ -49,7 +49,8 @@ export default function AuthOverlay({ open, onOpenChange }) {
       // Get redirect path based on enrollment count
       if (data.user) {
         const redirectPath = await getPostAuthRedirectPath(data.user.id);
-        router.push(redirectPath);
+        // Refresh the page to ensure user state is updated
+        window.location.href = redirectPath;
       }
     }
   }
@@ -68,13 +69,25 @@ export default function AuthOverlay({ open, onOpenChange }) {
       email: signupEmail,
       password: signupPassword,
       options: {
-        data: { full_name: signupName, phone: signupPhone },
+        data: { 
+          full_name: signupName.trim(), 
+          phone: signupPhone.trim() 
+        },
       },
     });
+    
     if (!error && data.user) {
-      await supabase.auth.updateUser({
-        data: { full_name: signupName, phone: signupPhone },
+      // Ensure the user metadata is properly set
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: { 
+          full_name: signupName.trim(), 
+          phone: signupPhone.trim() 
+        },
       });
+      
+      if (updateError) {
+        console.error('Error updating user metadata:', updateError);
+      }
     }
     setLoading(false);
     if (error) {
@@ -90,7 +103,8 @@ export default function AuthOverlay({ open, onOpenChange }) {
       // Get redirect path based on enrollment count
       if (data.user) {
         const redirectPath = await getPostAuthRedirectPath(data.user.id);
-        router.push(redirectPath);
+        // Refresh the page to ensure user state is updated
+        window.location.href = redirectPath;
       }
     }
   }
@@ -120,9 +134,6 @@ export default function AuthOverlay({ open, onOpenChange }) {
                   <div>
                     <Label htmlFor="password" className="text-white mb-1 block">Password</Label>
                     <Input id="password" type="password" placeholder="••••••••" autoComplete="current-password" className="rounded-lg bg-white text-black border-0 focus:ring-2 focus:ring-green-500" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
-                  </div>
-                  <div className="flex justify-end -mt-3">
-                    <button type="button" className="text-xs text-white underline hover:text-green-400">Forgot Password</button>
                   </div>
                   {error && <div className="text-red-400 text-sm text-center -mt-2">{error}</div>}
                   <Button type="submit" className="w-full mt-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-lg font-semibold py-2 shadow-md" disabled={loading}>

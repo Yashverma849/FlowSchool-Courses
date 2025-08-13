@@ -30,6 +30,23 @@ export default function SiteHeader({ sidebarToggle }) {
       }
     };
     getUser();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+        setUser(session?.user || null);
+        if (session?.user) {
+          setShowWelcome(true);
+          setTimeout(() => setFlipAnimation(true), 4000);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setShowWelcome(false);
+        setFlipAnimation(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // Add logout handler
@@ -55,6 +72,27 @@ export default function SiteHeader({ sidebarToggle }) {
     if (!email) return "/placeholder-user.jpg";
     const hash = md5(email.trim().toLowerCase());
     return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
+  }
+
+  function getDisplayName(user) {
+    if (!user) return 'User';
+    
+    // First try to get from user metadata
+    if (user.user_metadata?.full_name) {
+      return user.user_metadata.full_name;
+    }
+    
+    // If no full name, try to extract from email
+    if (user.email) {
+      const emailName = user.email.split('@')[0];
+      // Convert email name to proper case (e.g., "john.doe" -> "John Doe")
+      return emailName
+        .split(/[._-]/)
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(' ');
+    }
+    
+    return 'User';
   }
 
   return (
@@ -143,7 +181,7 @@ export default function SiteHeader({ sidebarToggle }) {
                 <div className="relative h-6 overflow-hidden w-64">
                   <div className={`absolute inset-0 transition-all duration-1000 ease-out ${flipAnimation ? 'opacity-0 -translate-y-full' : 'opacity-100 translate-y-0'}`}>
                     <span className="text-sm font-medium text-white">
-                      Hi Yash Verma!
+                      Hi {getDisplayName(user)}!
                     </span>
                   </div>
                   <div className={`absolute inset-0 transition-all duration-1000 ease-out ${flipAnimation ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full'}`}>
@@ -159,7 +197,7 @@ export default function SiteHeader({ sidebarToggle }) {
                   <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                     <Avatar className="h-9 w-9 border-2 border-purple-500">
                       <AvatarImage src={user.user_metadata?.avatar_url || getGravatarUrl(user.email)} />
-                      <AvatarFallback>{(user.user_metadata?.full_name || user.email || "U").slice(0,2).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback>{getDisplayName(user).slice(0,2).toUpperCase()}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
@@ -170,7 +208,7 @@ export default function SiteHeader({ sidebarToggle }) {
                         <div>Loading...</div>
                       ) : user ? (
                         <>
-                          <p className="text-sm font-medium leading-none">{user.user_metadata?.full_name || user.email}</p>
+                          <p className="text-sm font-medium leading-none">{getDisplayName(user)}</p>
                           <p className="text-xs leading-none text-gray-400">{user.email}</p>
                         </>
                       ) : (

@@ -187,7 +187,7 @@ export default function CourseLayout() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-0 bg-gray-900 border-gray-800 scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-purple-600 hover:scrollbar-thumb-purple-500">
-        <DashboardSidebar
+        {/* <DashboardSidebar
           filterType={filterType}
           setFilterType={setFilterType}
           selectedFlowArts={selectedFlowArts}
@@ -199,7 +199,7 @@ export default function CourseLayout() {
           coursesData={courses}
           flowArtsOptions={flowArtsOptions}
           skillLevelOptions={skillLevelOptions}
-        />
+        /> */}
       </SheetContent>
     </Sheet>
   )
@@ -211,7 +211,7 @@ export default function CourseLayout() {
       <SiteHeader sidebarToggle={sidebarToggle} />
       <div className="flex">
         {/* Desktop Sidebar */}
-        <div className="hidden lg:block">
+        {/* <div className="hidden lg:block">
           <DashboardSidebar
             filterType={filterType}
             setFilterType={setFilterType}
@@ -225,9 +225,9 @@ export default function CourseLayout() {
             flowArtsOptions={flowArtsOptions}
             skillLevelOptions={skillLevelOptions}
           />
-        </div>
+        </div> */}
         {/* Main Content */}
-        <div className="flex-1 lg:ml-64 p-4 pt-2 overflow-y-auto">
+        <div className="flex-1 p-4 pt-2 overflow-y-auto">
           <CourseCards courses={filteredCourses} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </div>
       </div>
